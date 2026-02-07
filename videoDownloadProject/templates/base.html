@@ -1,0 +1,50 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}VidFetch Pro{% endblock %}</title>
+  {% tailwind_css %}
+  <link rel="stylesheet" href="{% static 'fonts/font.css' %}" /></head>
+<body class="h-full">
+  <div class="min-h-full">
+    <header class="sticky top-0 z-30 border-b border-slate-200/70 glass">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white" style="box-shadow: var(--shadow-glow);">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 5h16v14H4z" />
+              <path d="M10 9l6 3-6 3z" />
+            </svg>
+          </div>
+          <div>
+            <p class="font-[var(--font-display)] text-lg font-semibold">VidFetch Pro</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Download any video in seconds</p>
+          </div>
+        </div>
+        <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300 md:flex">
+          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Features</a>
+          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Formats</a>
+          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Pricing</a>
+          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Help</a>
+        </nav>
+        <div class="flex items-center gap-3">
+          <button id="themeToggle" class="pill inline-flex items-center gap-2">
+            <span class="theme-label">Dark</span>
+            <span class="rounded-full bg-slate-900 px-2 py-1 text-[10px] uppercase tracking-wide text-white dark:bg-white dark:text-slate-900">Mode</span>
+          </button>
+          <button class="btn btn-ghost">Login</button>
+          <button class="btn btn-primary">Create account</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

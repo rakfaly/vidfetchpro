@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}VidFetch Pro — Dashboard{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="font-[var(--font-display)] text-2xl font-semibold">Grab video, audio, and subtitles in one flow</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Paste a URL, validate it, pick a format, and download with live progress.</p>
+      </div>
+      <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Unlimited for logged users</span>
+    </div>
+    <div class="mt-6 space-y-4">
+      <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Video URL</label>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <input type="url" placeholder="https://video.example.com/watch?v=..." class="input" />
+        <button class="btn btn-primary">Fetch</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Video metadata</h2>
+      <span class="text-xs text-slate-500">Step 2</span>
+    </div>
+    <div class="mt-4 grid gap-4 sm:grid-cols-[auto_1fr]">
+      <div class="h-24 w-40 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900"></div>
+      <div class="space-y-2 text-sm">
+        <p class="font-semibold">How to build a modern Django downloader</p>
+        <div class="flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">10:24</span>
+          <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">1080p</span>
+          <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">3.2 GB</span>
+          <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">Channel: StudioFlow</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Fetched on February 7, 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Choose format</h2>
+      <span class="text-xs text-slate-500">Step 3</span>
+    </div>
+    <div class="mt-4 grid gap-3">
+      <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800">
+        <span>
+          <span class="block font-semibold">MP4 · 1080p</span>
+          <span class="block text-xs text-slate-500">High quality video + audio</span>
+        </span>
+        <input type="radio" name="format" class="h-4 w-4 text-brand-500" checked />
+      </label>
+      <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800">
+        <span>
+          <span class="block font-semibold">MP4 · 720p</span>
+          <span class="block text-xs text-slate-500">Balanced size and quality</span>
+        </span>
+        <input type="radio" name="format" class="h-4 w-4 text-brand-500" />
+      </label>
+      <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800">
+        <span>
+          <span class="block font-semibold">MP3 · 320kbps</span>
+          <span class="block text-xs text-slate-500">Audio only (fastest)</span>
+        </span>
+        <input type="radio" name="format" class="h-4 w-4 text-brand-500" />
+      </label>
+    </div>
+    <div class="mt-6 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-xs text-slate-500">
+        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+        Logged users unlock 4K + lossless
+      </div>
+      <button class="btn btn-ghost">Download</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Download status</h2>
+      <span class="text-xs text-slate-500">Step 4</span>
+    </div>
+    <div class="mt-4 grid gap-4">
+      <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+        <div class="flex items-center justify-between text-sm font-semibold">
+          <span>video_tutorial_1080p.mp4</span>
+          <span data-progress-text>65%</span>
+        </div>
+        <div class="mt-3 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800">
+          <div class="h-2 w-[65%] rounded-full bg-brand-500" data-progress></div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+          <span>Speed: 6.4 MB/s</span>
+          <span>ETA: <span data-eta>00:34</span></span>
+          <span>Elapsed: <span data-elapsed>02:18</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<aside class="space-y-6">
+  <div class="card">
+    <h2 class="font-[var(--font-display)] text-lg font-semibold">User steps</h2>
+    <ol class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+      <li class="step-card">1. Paste URL and click Fetch</li>
+      <li class="step-card">2. Review metadata</li>
+      <li class="step-card">3. Choose format</li>
+      <li class="step-card">4. Download with live progress</li>
+      <li class="step-card">5. View history (logged users)</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Download history</h2>
+      <span class="text-xs text-emerald-500">Logged in</span>
+    </div>
+    <div class="mt-4 space-y-3">
+      <div class="rounded-2xl border border-slate-200 p-3 text-sm dark:border-slate-800">
+        <p class="font-semibold">cinematic_trailer_4k.mp4</p>
+        <p class="text-xs text-slate-500">Completed · 3.8 GB</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-3 text-sm dark:border-slate-800">
+        <p class="font-semibold">podcast_audio.mp3</p>
+        <p class="text-xs text-slate-500">Completed · 84 MB</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-3 text-sm dark:border-slate-800">
+        <p class="font-semibold">design_reference_720p.mp4</p>
+        <p class="text-xs text-slate-500">Completed · 540 MB</p>
+      </div>
+    </div>
+  </div>
+</aside>
+{% endblock %}
