@@ -24,6 +24,7 @@ class VideoSource(TimeStampedModel):
 class VideoFormat(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     video = models.ForeignKey(VideoSource, on_delete=models.CASCADE, related_name="formats")
+    format_id = models.CharField(max_length=128, blank=True)  # yt-dlp format id
     container = models.CharField(max_length=16)  # mp4, webm, mp3
     quality_label = models.CharField(max_length=32, blank=True)  # 1080p, 720p
     width = models.PositiveIntegerField(null=True, blank=True)
