@@ -4,9 +4,8 @@ from apps.downloads.models import DownloadJob
 from apps.downloads.services.access import enforce_download_constraints
 from apps.downloads.services.video_metadata import VideoMetadataFetcher
 from apps.downloads.tasks.download_tasks import enqueue_download_job
-#from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data 
 from apps.videos.models import VideoFormat, VideoSource
-
+from utils.utils import normalize_entry, unique_by_key_max
 
 def _truncate(value: Any, max_len: int) -> str:
     """Coerce a value to string and truncate to max_len."""
@@ -24,7 +23,7 @@ def _create_formats(video: VideoSource, formats: Iterable[Dict[str, Any]]) -> Li
         is_audio_only = fmt.get("vcodec") in (None, "none")
         quality_label = fmt.get("format_note") or (f"{fmt.get('height')}p" if fmt.get("height") else "")
         created.append(
-            VideoFormat.objects.create(
+            VideoFormat(
                 video=video,
                 format_id=_truncate(fmt.get("format_id"), 128),
                 container=_truncate(fmt.get("ext") or "mp4", 16),
@@ -51,28 +50,38 @@ def _choose_format(formats: List[VideoFormat]) -> VideoFormat:
     return sorted(formats, key=rank, reverse=True)[0]
 
 
-def _filtered_formats(raw_formats):
+def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter formats based on size and resolution."""
     formats = []
     for format in raw_formats:
-        if (format.get("filesize") is not None) and (format.get("filesize") >= 5000):
+        if (format.get("filesize") is not None) and (format.get("filesize") >= 5000): #and (format.get("ext") in ("mp4")):
             if (format.get("height") is not None) and (format.get("height") >= 480):
                 formats.append(format)
             elif format.get("vcodec") in (None, "none"): # audio aonly formats
                 formats.append(format)
             else:
                 pass
-    return formats
+    #formats = unique_by_key_max(formats, key="height", max_by="filesize")
+    return sorted(formats, key=lambda f: f.get("height") or 0, reverse=True)
+
     
-    
-def fetch_data(playlist_url):
+def fetch_data(playlist_url: str) -> Dict[str, Any]:
+    """Fetch raw metadata for a playlist or single video URL."""
     return VideoMetadataFetcher().fetch(playlist_url)
     
 
-def enqueue_playlist_downloads(user, playlist_url: str) -> List[DownloadJob]:
-    """Enqueue downloads for each playlist entry and return created jobs."""
-    info = fetch_data(playlist_url)
-    #entry_info = enqueue_fetch_data(entry_url) # in view mode when user click on fetch button
+def build_playlist_preview(info: dict) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Build preview data for UI without saving any models."""
+    entries = info.get("entries") or []
+    if not entries:
+        entries = [info]
+    _formats = [format for entry in entries for format in entry.get("formats", [])]
+    formats = _filtered_formats(_formats)
+    return (normalize_entry(entries), formats)
+
+
+def launch_playlist_downloads(user, info: dict) -> List[DownloadJob]:
+    """Persist playlist entries and enqueue downloads."""
     entries = info.get("entries") or []
     if not entries:
         entries = [info]
@@ -99,9 +108,8 @@ def enqueue_playlist_downloads(user, playlist_url: str) -> List[DownloadJob]:
         formats = entry.get("formats") or []
         if not formats:
             entry_info = VideoMetadataFetcher().fetch(entry_url)
-            # entry_info = enqueue_fetch_data(entry_url) # in view mode when user click on fetch button
             formats = entry_info.get("formats") or []
-        
+
         created_formats = _create_formats(video, formats)
         if not created_formats:
             continue
@@ -109,6 +117,7 @@ def enqueue_playlist_downloads(user, playlist_url: str) -> List[DownloadJob]:
         chosen_format = _choose_format(created_formats)
         enforce_download_constraints(user, chosen_format)
 
+        chosen_format.save()
         job = DownloadJob.objects.create(user=user, video=video, format=chosen_format)
         enqueue_download_job(job.id, use_on_commit=False)
         jobs.append(job)

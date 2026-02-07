@@ -1,30 +1,29 @@
-  <div class="flex items-center justify-between">
+<div class="flex items-center justify-between">
     <h2 class="font-[var(--font-display)] text-lg font-semibold">Download history</h2>
     <span class="text-xs text-emerald-500">
         {% if user.is_authenticated %}
-            {{ user.username }}
+        {{ user.username }}
         {% else %}
-            Login to view history
+        Login to view history
         {% endif %}
     </span>
-  </div>
-  {% for item in history_list %}
-       <div class="rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">
-         <div class="flex items-center justify-between">
-           <p class="font-semibold">{{ item.job.video|default:"Untitled" }}</p>
-           <span class="text-xs {% if item.success %}text-emerald-500{% else %}text-rose-500{% endif %}">
-             {{ item.success|yesno:"Completed,Failed" }}
-           </span>
-         </div>
-         <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-           <span>{{ item.job.format.container|upper }} · {{ item.job.format.quality_label|default:"N/A" }}</span>
-           {% if item.job.output_filename %}
-             <span>{{ item.job.output_filename }}</span>
-           {% endif %}
-           <span>{{ item.created_at|date:"M d, Y H:i" }}</span>
-         </div>
-       </div>
-     {% empty %}
-       <p class="text-sm text-slate-500">No history yet.</p>
-     {% endfor %}
-
+</div>
+{% for item in history_list %}
+<div class="rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">
+    <div class="flex items-center justify-between">
+        <p class="font-semibold">{{ item.job.video|default:"Untitled" }}</p>
+        <span class="text-xs {% if item.success %}text-emerald-500{% else %}text-rose-500{% endif %}">
+            {{ item.success|yesno:"Completed,Failed" }}
+        </span>
+    </div>
+    <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+        <span>{{ item.job.format.container|upper }} · {{ item.job.format.quality_label|default:"N/A" }}</span>
+        {% if item.job.output_filename %}
+        <span>{{ item.job.output_filename }}</span>
+        {% endif %}
+        <span>{{ item.created_at|date:"M d, Y H:i" }}</span>
+    </div>
+</div>
+{% empty %}
+<p class="text-sm text-slate-500">No history yet.</p>
+{% endfor %}

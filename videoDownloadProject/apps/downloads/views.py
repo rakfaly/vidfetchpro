@@ -1,12 +1,14 @@
 from django.views.generic import ListView
-
-from apps.downloads.models import DownloadJob
-from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
-from apps.history.models import History
-from django.shortcuts import redirect
-from apps.downloads.forms import FetchMetadataForm
+from django.shortcuts import redirect, render
 from celery.result import AsyncResult
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
+from apps.downloads.forms import FetchMetadataForm
+from apps.history.models import History
+from apps.downloads.models import DownloadJob
+from utils.utils import normalize_entry
+from apps.downloads.services.playlist import build_playlist_preview, launch_playlist_downloads, _filtered_formats
+
 
 class DownloadView(ListView):
     """Dashboard showing the download flow and recent jobs."""
@@ -19,7 +21,6 @@ class DownloadView(ListView):
         user = self.request.user
         
         context["fetch_form"] = FetchMetadataForm()
-        context["fetched_data"] = None
 
         if user.is_authenticated:
             context["history_list"] = (
@@ -30,16 +31,10 @@ class DownloadView(ListView):
             )
         else:
             context["history_list"] = []
-
-        task_id = self.request.session.get("fetch_task_id")
-        if task_id:
-            result = AsyncResult(task_id)
-            if result.successful():
-                context["fetched_data"] = result.result
-                self.request.session.pop("fetch_task_id", None)
+        
         return context
 
-
+        
 def fetch_metadata(request):
     """Handle metadata fetch form submission."""
     if request.method != "POST":
@@ -48,25 +43,47 @@ def fetch_metadata(request):
     form = FetchMetadataForm(request.POST)
     if not form.is_valid():
         return redirect("apps.downloads:index")
+        
+    if request.htmx:
+        video_url = form.cleaned_data["video_url"]
+        info = enqueue_fetch_data(video_url)
+        # Store the tasks result in the session
+        request.session["fetch_task_id"] = getattr(info, "id", None)
+        
+        task_id = request.session.get("fetch_task_id")
+        result = AsyncResult(task_id)
+        return render(request, "downloads/fetched_spinner.html", {"task": result})
 
-    video_url = form.cleaned_data["video_url"]
-    result = enqueue_fetch_data(video_url)
-    # Store the tasks result in the session
-    request.session["fetch_task_id"] = getattr(result, "id", None)
     return redirect("apps.downloads:index")
 
 
 def fetch_status(request):
-    """Handle metadata fetch status check."""
-    task_id = request.session.get("fetch_task_id")
-    if not task_id:
-        return JsonResponse({"status": "none"})
+    if request.htmx:
+        task_id = request.session.get("fetch_task_id")
+        if not task_id:
+            return HttpResponse("")
+    
+        result = AsyncResult(task_id)
 
-    result = AsyncResult(task_id)
-    if result.successful():
-        request.session.pop("fetch_task_id", None)
-        return JsonResponse({"status": "success", "data": result.result})
-    if result.failed():
-        return JsonResponse({"status": "error", "message": str(result.result)})
-    return JsonResponse({"status": "pending"})
-        
+        print("Task state:", result.state)
+       
+        if result.successful():
+            (entries, formats) = build_playlist_preview(result.result)
+
+            return render(request, "downloads/fetched_form.html", 
+                {
+                    "fetched_data": entries,
+                    "formats": formats,
+                })
+            #return JsonResponse({'formats': formats[0]["height"]})
+                
+
+        if result.failed():
+            return HttpResponse(
+                '<span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold '
+                'text-red-700 dark:bg-red-500/20 dark:text-emerald-300">'
+                'Failed to fetch metadata'
+                '</span>'
+            )
+        return render(request, "downloads/fetched_spinner.html", {"task": result})
+    return HttpResponse("")
