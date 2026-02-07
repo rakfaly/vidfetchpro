@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tailwind',
     'theme',
+    'apps.users',
+    'apps.videos',
+    'apps.downloads',
+    'apps.history',
+    'apps.common',
 ]
 
 MIDDLEWARE = [
