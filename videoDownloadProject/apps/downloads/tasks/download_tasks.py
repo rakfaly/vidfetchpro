@@ -1,16 +1,30 @@
+from __future__ import annotations
+
+from typing import Optional
+
+from celery import shared_task
+from celery.result import AsyncResult
 from django.db import transaction
-from django.tasks import task
 
 from apps.downloads.models import DownloadJob
 from apps.downloads.services.video_download import VideoDownload
 
 
-@task
-def run_download_job(job_id: str) -> None:
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_jitter=True,
+    retry_kwargs={"max_retries": 5},
+)
+def run_download_job(self, job_id: str) -> None:
     job = DownloadJob.objects.select_related("video", "format", "user").get(id=job_id)
     VideoDownload(job).download()
 
 
-def enqueue_download_job(job_id: str) -> None:
-    """Enqueue the download task after the current transaction commits."""
-    transaction.on_commit(lambda: run_download_job.enqueue(job_id=job_id))
+def enqueue_download_job(job_id: str, *, use_on_commit: bool = True) -> Optional[AsyncResult]:
+    """Enqueue the download task; optionally wait for the DB transaction to commit."""
+    if use_on_commit:
+        transaction.on_commit(lambda: run_download_job.delay(job_id))
+        return None
+    return run_download_job.delay(job_id)

@@ -34,4 +34,5 @@ class DownloadJob(TimeStampedModel):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user_id} - {self.status}"
+        #return f"{self.user_id} - {self.status}"
+        return f"{self.user} - {self.status}"

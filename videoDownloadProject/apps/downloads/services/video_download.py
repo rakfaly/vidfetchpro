@@ -1,15 +1,16 @@
 import os
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.text import slugify
 
 from apps.downloads.models import DownloadJob
 from apps.downloads.services.exceptions import DownloadFailed
-from apps.downloads.services.validators import validate_url, ensure_format_allowed
-from apps.videos.models import VideoSource, VideoFormat
+from apps.downloads.services.validators import ensure_format_allowed
+from apps.downloads.services.validators import validate_url
 
 
 class VideoDownload:
@@ -21,28 +22,16 @@ class VideoDownload:
         self.video = job.video
         self.video_format = job.format
 
-    def fetch_metadata(self) -> Dict[str, Any]:
-        url = validate_url(self.video.canonical_url)
-        info = {}
-        try:
-            from yt_dlp import YoutubeDL
-        except Exception as exc:  # pragma: no cover - runtime dependency
-            raise DownloadFailed("yt-dlp is not installed") from exc
-
-        ydl_opts = {
-            "quiet": True,
-            "skip_download": True,
-        }
-
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-
-        return info
-
     def _build_output_dir(self) -> str:
         base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None) or os.path.join(settings.MEDIA_ROOT, "downloads")
         os.makedirs(base_dir, exist_ok=True)
         return base_dir
+
+    def _build_output_filename(self) -> str:
+        base_title = self.video.title or "video"
+        slug = slugify(base_title) or "video"
+        slug = slug[:80]
+        return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
 
     def _progress_hook(self, data: Dict[str, Any]) -> None:
         if data.get("status") == "downloading":
@@ -84,8 +73,7 @@ class VideoDownload:
 
         url = validate_url(self.video.canonical_url)
         output_dir = self._build_output_dir()
-        filename = f"{self.video.id}-{int(time.time())}.%(ext)s"
-        #filename = f"{self.video.output_filename}.%(ext)s"
+        filename = self._build_output_filename()
         output_path = os.path.join(output_dir, filename)
 
         try:

@@ -14,14 +14,14 @@ SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-TASKS = {
-    "default": {
-        "BACKEND": os.environ.get(
-            "DJANGO_TASKS_BACKEND",
-            "django.tasks.backends.immediate.ImmediateBackend",
-        ),
-    }
-}
+# TASKS = {
+#     "default": {
+#         "BACKEND": os.environ.get(
+#             "DJANGO_TASKS_BACKEND",
+#             "django.tasks.backends.immediate.ImmediateBackend",
+#         ),
+#     }
+# }
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "")

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.downloads',
     'apps.history',
     'apps.common',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
