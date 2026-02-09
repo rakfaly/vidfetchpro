@@ -8,6 +8,8 @@ from apps.downloads.services.exceptions import InvalidVideoUrl, RateLimitExceede
 
 
 def validate_url(value: str) -> str:
+    """Validate a video URL and return the normalized string."""
+
     if not value:
         raise InvalidVideoUrl("URL is required")
 
@@ -29,6 +31,8 @@ def validate_url(value: str) -> str:
 
 
 def ensure_rate_limit(profile, downloads_today: int) -> None:
+    """Raise if the profile has exceeded its daily download limit."""
+
     if profile and profile.is_unlimited:
         return
     if profile and profile.daily_limit is not None and downloads_today >= profile.daily_limit:
@@ -36,6 +40,8 @@ def ensure_rate_limit(profile, downloads_today: int) -> None:
 
 
 def ensure_format_allowed(profile, video_format) -> None:
+    """Raise if the selected format violates plan restrictions."""
+
     if profile and profile.is_unlimited:
         return
 

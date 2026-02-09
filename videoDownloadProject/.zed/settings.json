@@ -29,11 +29,15 @@
     "dark": "One Dark",
   },
   "file_types": {
-      "Django": ["**/templates/**/*.html"]
-    },
+    "Django": ["**/templates/**/*.html"]
+  },
   "languages": {
-      "Django": {
-        "language_servers": ["djlsp", "!django-template-lsp", "..."]
-      }
+    "Django": {
+      "language_servers": ["djlsp", "!django-template-lsp", "..."]
+    },
+    "Python": {
+      "language_servers": ["pylsp", "!pyright", "!basedpyright", "..."]
     }
+  },
+    
 }

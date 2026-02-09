@@ -8,12 +8,16 @@ from apps.videos.models import VideoFormat, VideoSource
 
 
 def run_shell_test() -> None:
+    """Fetch metadata, persist models, then enqueue a download job."""
+
     video_url = "https://www.youtube.com/shorts/hE_jWgregjM?feature=share"
 
     fetch_result = enqueue_fetch_data(video_url)
     if fetch_result is None:
         raise RuntimeError("Fetch task did not return a result")
     info = fetch_result.get(timeout=300)
+    if not isinstance(info, dict):
+        raise RuntimeError("Metadata task returned no data")
 
     user_model = get_user_model()
     user = user_model.objects.first()
@@ -55,6 +59,8 @@ def run_shell_test() -> None:
         raise RuntimeError("No formats returned by yt-dlp")
 
     def format_rank(vf: VideoFormat) -> tuple:
+        """Rank formats to prefer MP4 video with higher resolution."""
+
         return (
             1 if vf.container == "mp4" else 0,
             0 if vf.is_audio_only else 1,

@@ -14,26 +14,34 @@ from apps.downloads.services.validators import validate_url
 
 
 class VideoDownload:
-    """Service class to fetch metadata and download a video using yt-dlp."""
+    """Service class to download a video using yt-dlp."""
 
     def __init__(self, job: DownloadJob):
+        """Initialize the service with a persisted download job."""
+
         self.job = job
         self.user = job.user
         self.video = job.video
         self.video_format = job.format
 
     def _build_output_dir(self) -> str:
+        """Ensure the download output directory exists and return it."""
+
         base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None) or os.path.join(settings.MEDIA_ROOT, "downloads")
         os.makedirs(base_dir, exist_ok=True)
         return base_dir
 
     def _build_output_filename(self) -> str:
+        """Build a safe, readable output filename template."""
+
         base_title = self.video.title or "video"
         slug = slugify(base_title) or "video"
         slug = slug[:80]
         return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
 
     def _progress_hook(self, data: Dict[str, Any]) -> None:
+        """Persist progress updates emitted by yt-dlp."""
+
         if data.get("status") == "downloading":
             downloaded = data.get("downloaded_bytes") or 0
             total = data.get("total_bytes") or data.get("total_bytes_estimate")
@@ -69,6 +77,8 @@ class VideoDownload:
             self.job.save(update_fields=["progress_percent", "status", "completed_at", "updated_at"])
 
     def download(self) -> None:
+        """Run the download and persist final metadata to the job."""
+
         ensure_format_allowed(getattr(self.user, "profile", None), self.video_format)
 
         url = validate_url(self.video.canonical_url)

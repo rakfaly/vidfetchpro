@@ -18,6 +18,8 @@ from apps.downloads.services.video_download import VideoDownload
     retry_kwargs={"max_retries": 5},
 )
 def run_download_job(self, job_id: str) -> None:
+    """Execute a download job by id inside a Celery worker."""
+
     job = DownloadJob.objects.select_related("video", "format", "user").get(id=job_id)
     VideoDownload(job).download()
 

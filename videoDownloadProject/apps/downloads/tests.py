@@ -10,7 +10,11 @@ from apps.videos.models import VideoFormat, VideoSource
 
 
 class DownloadTaskTests(TestCase):
+    """Tests for download task enqueueing behavior."""
+
     def setUp(self) -> None:
+        """Create baseline user, video, format, and job fixtures."""
+
         user_model = get_user_model()
         self.user = user_model.objects.create_user(username="test-user", password="test-pass")
         self.video = VideoSource.objects.create(
@@ -32,6 +36,8 @@ class DownloadTaskTests(TestCase):
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_enqueue_download_job_runs_task_immediately(self) -> None:
+        """Ensure eager mode executes the task immediately."""
+
         with patch("apps.downloads.tasks.download_tasks.VideoDownload") as mock_service:
             result = enqueue_download_job(self.job.id, use_on_commit=False)
             self.assertIsNotNone(result)
@@ -40,6 +46,8 @@ class DownloadTaskTests(TestCase):
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_enqueue_download_job_on_commit(self) -> None:
+        """Ensure on-commit enqueue runs after callbacks are executed."""
+
         with patch("apps.downloads.tasks.download_tasks.VideoDownload") as mock_service:
             with capture_on_commit_callbacks(execute=True):
                 result = enqueue_download_job(self.job.id, use_on_commit=True)

@@ -8,6 +8,8 @@ class VideoMetadataFetcher:
     """Service class to fetch video metadata using yt-dlp."""
 
     def fetch(self, url: str) -> Dict[str, Any]:
+        """Fetch metadata for a URL without downloading the media."""
+
         url = validate_url(url)
         try:
             from yt_dlp import YoutubeDL

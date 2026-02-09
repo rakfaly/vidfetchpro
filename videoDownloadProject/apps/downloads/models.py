@@ -1,12 +1,15 @@
-# apps/downloads/models.py
 import uuid
+
 from django.conf import settings
 from django.db import models
+
 from apps.common.models import TimeStampedModel
-from apps.videos.models import VideoSource, VideoFormat
+from apps.videos.models import VideoFormat, VideoSource
 
 
 class DownloadJob(TimeStampedModel):
+    """Represents a queued or running download and its progress."""
+
     STATUS_CHOICES = [
         ("queued", "Queued"),
         ("downloading", "Downloading"),
@@ -34,5 +37,6 @@ class DownloadJob(TimeStampedModel):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        #return f"{self.user_id} - {self.status}"
+        """Return a readable label for admin and logs."""
+
         return f"{self.user} - {self.status}"

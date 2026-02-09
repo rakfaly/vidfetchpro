@@ -1,9 +1,13 @@
 import uuid
+
 from django.db import models
+
 from apps.common.models import TimeStampedModel
 
-# Create your models here.
+
 class VideoSource(TimeStampedModel):
+    """Represents a single video entry and its extracted metadata."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     canonical_url = models.URLField(max_length=200, unique=True)  # may be need more max_length
     #provider = models.CharField(max_length=50, choices=[('youtube', 'YouTube'), ('vimeo', 'Vimeo')])
@@ -18,10 +22,14 @@ class VideoSource(TimeStampedModel):
     raw_metadata = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
+        """Return a readable label for admin and logs."""
+
         return self.title or self.canonical_url
 
 
 class VideoFormat(TimeStampedModel):
+    """Stores an individual downloadable format for a video source."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     video = models.ForeignKey(VideoSource, on_delete=models.CASCADE, related_name="formats")
     format_id = models.CharField(max_length=128, blank=True)  # yt-dlp format id
@@ -39,4 +47,6 @@ class VideoFormat(TimeStampedModel):
     size_bytes = models.BigIntegerField(null=True, blank=True)
 
     def __str__(self):
+        """Return a compact label for the format."""
+
         return f"{self.container} {self.quality_label}".strip()

@@ -1,10 +1,14 @@
 import uuid
-from django.db import models
+
 from django.conf import settings
+from django.db import models
+
 from apps.common.models import TimeStampedModel
 
-# Create your models here.
+
 class UserProfile(TimeStampedModel):
+    """Profile extension for application-specific user limits and plan data."""
+
     PLAN_CHOICES = [
         ('free', 'Free'),
         ('pro', 'Pro'),
@@ -17,5 +21,7 @@ class UserProfile(TimeStampedModel):
     is_unlimited = models.BooleanField(default=False)
     
     def __str__(self):
+        """Return a readable identifier for admin displays."""
+
         return f"{self.user_id} - {self.plan_tier}"
         
