@@ -8,6 +8,13 @@ from apps.downloads.tasks.download_tasks import enqueue_download_job
 from apps.videos.models import VideoFormat, VideoSource
 
 
+def _truncate(value: Any, max_len: int) -> str:
+    """Coerce a value to string and truncate to max_len."""
+    if value is None:
+        return ""
+    return str(value)[:max_len]
+
+
 def _create_formats(video: VideoSource, formats: Iterable[Dict[str, Any]]) -> List[VideoFormat]:
     """Create VideoFormat records from yt-dlp format dictionaries."""
     filtered_resolution_formats = _filtered_formats(formats) or formats
@@ -19,13 +26,13 @@ def _create_formats(video: VideoSource, formats: Iterable[Dict[str, Any]]) -> Li
         created.append(
             VideoFormat.objects.create(
                 video=video,
-                format_id=str(fmt.get("format_id") or ""),
-                container=fmt.get("ext") or "mp4",
-                quality_label=quality_label,
+                format_id=_truncate(fmt.get("format_id"), 128),
+                container=_truncate(fmt.get("ext") or "mp4", 16),
+                quality_label=_truncate(quality_label, 32),     # limit to 32 characters (Models)
                 width=fmt.get("width"),
                 height=fmt.get("height"),
-                codec_video=fmt.get("vcodec") or "",
-                codec_audio=fmt.get("acodec") or "",
+                codec_video=_truncate(fmt.get("vcodec"), 32),
+                codec_audio=_truncate(fmt.get("acodec"), 32),
                 is_audio_only=is_audio_only,
                 size_bytes=fmt.get("filesize") or fmt.get("filesize_approx"),
             )
@@ -49,7 +56,7 @@ def _filtered_formats(raw_formats):
     formats = []
     for format in raw_formats:
         if (format.get("filesize") is not None) and (format.get("filesize") >= 5000):
-            if (format.get("width") is not None) and (format.get("width") >= 480):
+            if (format.get("height") is not None) and (format.get("height") >= 480):
                 formats.append(format)
             elif format.get("vcodec") in (None, "none"): # audio aonly formats
                 formats.append(format)
