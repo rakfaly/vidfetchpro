@@ -27,7 +27,7 @@ class VideoDownload:
     def _build_output_dir(self) -> str:
         """Ensure the download output directory exists and return it."""
 
-        base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None) or os.path.join(settings.MEDIA_ROOT, "downloads")
+        base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None) # or os.path.join(settings.MEDIA_ROOT, "downloads")
         os.makedirs(base_dir, exist_ok=True)
         return base_dir
 
@@ -37,7 +37,8 @@ class VideoDownload:
         base_title = self.video.title or "video"
         slug = slugify(base_title) or "video"
         slug = slug[:80]
-        return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
+        #return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
+        return f"{slug}-{int(time.time())}.%(ext)s"
 
     def _progress_hook(self, data: Dict[str, Any]) -> None:
         """Persist progress updates emitted by yt-dlp."""
@@ -78,7 +79,6 @@ class VideoDownload:
 
     def download(self) -> None:
         """Run the download and persist final metadata to the job."""
-
         ensure_format_allowed(getattr(self.user, "profile", None), self.video_format)
 
         url = validate_url(self.video.canonical_url)
@@ -94,13 +94,16 @@ class VideoDownload:
         # Prefer the exact format chosen by the user when available.
         if self.video_format.format_id:
             format_selector = self.video_format.format_id
+            # Merge audio if the selected format is video-only.
+            if self.video_format.codec_audio in ("", "none"):
+                format_selector = f"{format_selector}+bestaudio/best"
         elif self.video_format.is_audio_only:
             format_selector = "bestaudio/best"
         else:
-            # Enforce a minimum video height of 360p for video downloads.
+            # Enforce a minimum video height of 480p for video downloads.
             format_selector = (
                 "bestvideo[height>=480][vcodec^=avc1]+bestaudio/best"
-                "bestvideo[height>=480]+bestaudio/best"
+                "/bestvideo[height>=480]+bestaudio/best"
             )
 
         ydl_opts = {

@@ -4,5 +4,8 @@ from .models import DownloadJob
 # Register your models here.
 @admin.register(DownloadJob)
 class DownloadJobAdmin(admin.ModelAdmin):
-    list_display = ["output_filename", "user", "status", "video"]
+    list_display = ["video", "user", "status", "created_at"]
+    #list_display_links = ["user"]
+    readonly_fields = ["started_at", "completed_at"]
+    ordering = ["-created_at"]
     

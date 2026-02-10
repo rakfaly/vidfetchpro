@@ -7,6 +7,7 @@ from celery.result import AsyncResult
 from django.db import transaction
 
 from apps.downloads.models import DownloadJob
+from apps.history.models import History
 from apps.downloads.services.video_download import VideoDownload
 
 
@@ -21,7 +22,15 @@ def run_download_job(self, job_id: str) -> None:
     """Execute a download job by id inside a Celery worker."""
 
     job = DownloadJob.objects.select_related("video", "format", "user").get(id=job_id)
-    VideoDownload(job).download()
+    try:
+        VideoDownload(job).download()
+        success = True
+    except Exception:
+        success = False
+        raise
+    finally:
+        job.refresh_from_db()
+        History.objects.create(job=job, success=success)
 
 
 def enqueue_download_job(job_id: str, *, use_on_commit: bool = True) -> Optional[AsyncResult]:

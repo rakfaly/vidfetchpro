@@ -143,3 +143,5 @@ if DEBUG:
     MIDDLEWARE += [
         "django_browser_reload.middleware.BrowserReloadMiddleware",
     ]
+
+VIDEO_DOWNLOAD_ROOT = Path.home() / 'Downloads'

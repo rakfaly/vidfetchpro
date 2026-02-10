@@ -44,7 +44,7 @@ class VideoFormat(TimeStampedModel):
     is_audio_only = models.BooleanField(default=False)
     is_premium_only = models.BooleanField(default=False)
 
-    size_bytes = models.BigIntegerField(null=True, blank=True)
+    size_bytes = models.BigIntegerField(null=True, blank=True, verbose_name="Size(bytes)")
 
     def __str__(self):
         """Return a compact label for the format."""

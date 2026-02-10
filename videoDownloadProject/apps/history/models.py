@@ -12,6 +12,9 @@ class History(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     job = models.ForeignKey(DownloadJob, on_delete=models.CASCADE, related_name='history')
     success = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name_plural = 'histories'
 
     def __str__(self):
         """Return a readable status label for admin displays."""

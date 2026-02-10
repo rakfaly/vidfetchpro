@@ -22,4 +22,6 @@ class VideoMetadataFetcher:
         }
 
         with YoutubeDL(ydl_opts) as ydl:
-            return ydl.extract_info(url, download=False)
+            info = ydl.extract_info(url, download=False)
+            
+            return info

@@ -35,7 +35,7 @@ def ensure_rate_limit(profile, downloads_today: int) -> None:
 
     if profile and profile.is_unlimited:
         return
-    if profile and profile.daily_limit is not None and downloads_today >= profile.daily_limit:
+    if profile and (profile.daily_limit is not None) and downloads_today >= profile.daily_limit:
         raise RateLimitExceeded("Daily download limit exceeded")
 
 
