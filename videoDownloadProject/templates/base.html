@@ -13,16 +13,18 @@
     <header class="sticky top-0 z-30 border-b border-slate-200/70 glass">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white" style="box-shadow: var(--shadow-glow);">
-            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 5h16v14H4z" />
-              <path d="M10 9l6 3-6 3z" />
-            </svg>
-          </div>
-          <div>
-            <p class="font-[var(--font-display)] text-lg font-semibold">VidFetch Pro</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Download any video in seconds</p>
-          </div>
+            <a href="{% url 'apps.downloads:index' %}">
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white" style="box-shadow: var(--shadow-glow);">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 5h16v14H4z" />
+                    <path d="M10 9l6 3-6 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-[var(--font-display)] text-lg font-semibold">VidFetch Pro</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Download any video in seconds</p>
+                </div>
+            </a>
         </div>
         <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300 md:flex">
           <a href="#" class="hover:text-slate-900 dark:hover:text-white">Features</a>
@@ -46,5 +48,6 @@
     </main>
   </div>
   <script src="{% static 'js/app.js' %}"></script>
+  <script src="{% static 'downloads/js/downloads.js' %}"></script>
 </body>
 </html>

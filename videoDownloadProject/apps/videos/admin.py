@@ -16,6 +16,7 @@ class VideoFormatInline(admin.TabularInline):
 class VideoSourceAdmin(admin.ModelAdmin):
     list_display = ["title", "channel_name", "duration_seconds", "created_at"]
     list_filter = ["created_at"]
+    list_per_page = 20
     readonly_fields = ["canonical_url", "thumbnail_url"]
     ordering = ["-created_at"]
     fieldsets = [

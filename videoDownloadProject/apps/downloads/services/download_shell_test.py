@@ -10,9 +10,9 @@ from django.contrib.auth import get_user_model
 # video_url = "https://www.youtube.com/shorts/9FZVIM-1Lkw?feature=share"
 # video_url = "https://www.youtube.com/watch?v=if99Olw78WE&list=PLeXyx0kOyiXu_ju_10w9qDzqSDXYpqXD" # 
 # video_url = "https://www.youtube.com/watch?v=YeCn3or0XWs&list=PLbpi6ZahtOH7MBdd2q811v_7Tu31vnsyq"
-video_url = "https://www.youtube.com/watch?v=JKQow_FjMgg&list=PLEgVzQyXPPoM6NuiSX0vPeKtWl-aqMfEY"
+#video_url = "https://www.youtube.com/watch?v=JKQow_FjMgg&list=PLEgVzQyXPPoM6NuiSX0vPeKtWl-aqMfEY" # playlist
 #video_url = "https://www.youtube.com/watch?v=zpLkQVW8lmw&pp=ygUYZGphbmdvIHRpcHMgcHJvZmVzc2lvbmFs"
-#video_url = "https://www.youtube.com/watch?v=cukQ7e9FEik&pp=ygUYZGphbmdvIHRpcHMgcHJvZmVzc2lvbmFs" # 35MB
+video_url = "https://www.youtube.com/watch?v=cukQ7e9FEik&pp=ygUYZGphbmdvIHRpcHMgcHJvZmVzc2lvbmFs" # 35MB
 
 user_model = get_user_model()
 # user = user_model.objects.first()

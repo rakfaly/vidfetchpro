@@ -1,12 +1,5 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
 {
+  // ===== General Settings =====
   "git_panel": {
     "tree_view": true
   },
@@ -26,18 +19,88 @@
   "theme": {
     "mode": "system",
     "light": "One Light",
-    "dark": "One Dark",
+    "dark": "One Dark"
   },
-  "file_types": {
-    "Django": ["**/templates/**/*.html"]
-  },
-  "languages": {
-    "Django": {
-      "language_servers": ["djlsp", "!django-template-lsp", "..."]
-    },
-    "Python": {
-      "language_servers": ["pylsp", "!pyright", "!basedpyright", "..."]
+
+  // ===== Python/Django Virtual Environment =====
+  "terminal": {
+    "env": {
+      "VIRTUAL_ENV": "/Users/faly/ZedProject/venv",
+      "PATH": "/Users/faly/ZedProject/venv/bin:$PATH"
     }
   },
-    
+
+  // ===== File Associations =====
+  "file_types": {
+    "Django HTML": ["**/templates/**/*.html"]
+  },
+
+  // ===== Language Server Configuration =====
+  "languages": {
+    "Python": {
+      "language_servers": ["pylsp", "!pyright", "!basedpyright", "..."],
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "ruff",
+          "arguments": ["format", "--stdin-filename", "{buffer_path}", "-"]
+        }
+      },
+    },
+    "Django": {
+      "language_servers": ["djlsp", "..."]
+    }
+  },
+
+  // ===== LSP Settings =====
+  "lsp": {
+    "pylsp": {
+      "binary": {
+        "path": "/Users/faly/ZedProject/venv/bin/pylsp"
+      },
+      "settings": {
+        "pylsp": {
+          "plugins": {
+            "pycodestyle": { "enabled": false },
+            "mccabe": { "enabled": false },
+            "pyflakes": { "enabled": false },
+            "ruff": {
+              "enabled": true,
+              "formatEnabled": true
+            },
+            "jedi_completion": {
+              "enabled": true,
+              "include_params": true,
+              "include_class_objects": true,
+              "fuzzy": true
+            },
+            "jedi_definition": {
+              "enabled": true,
+              "follow_imports": true
+            },
+            "jedi_hover": { "enabled": true },
+            "jedi_references": { "enabled": true },
+            "jedi_signature_help": { "enabled": true },
+            "jedi_symbols": { "enabled": true }
+          }
+        }
+      }
+    }
+  },
+
+  // ===== Formatting & Linting =====
+  "format_on_save": "on",
+
+  // ===== Project-specific file exclusions =====
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/__pycache__",
+    "**/.venv",
+    "**/venv",
+    "**/*.pyc",
+    "**/node_modules",
+    "**/.DS_Store",
+    "**/migrations",
+    "**/*.sqlite3"
+  ]
 }
