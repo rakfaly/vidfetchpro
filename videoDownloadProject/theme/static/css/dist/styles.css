@@ -321,9 +321,6 @@
   .w-40 {
     width: calc(var(--spacing) * 40);
   }
-  .w-\[65\%\] {
-    width: 65%;
-  }
   .w-full {
     width: 100%;
   }
@@ -578,6 +575,15 @@
   .opacity-50 {
     opacity: 50%;
   }
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .duration-300 {
+    --tw-duration: 300ms;
+    transition-duration: 300ms;
+  }
   .hover\:border-brand-500 {
     &:hover {
       @media (hover: hover) {
@@ -779,7 +785,7 @@
     }
     &:hover {
       @media (hover: hover) {
-        color: var(--color-slate-900);
+        color: var(--color-slate-300);
       }
     }
     &:where(.dark, .dark *) {
@@ -921,6 +927,10 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
 @property --tw-shadow {
   syntax: "*";
   inherits: false;
@@ -1044,6 +1054,7 @@
       --tw-leading: initial;
       --tw-font-weight: initial;
       --tw-tracking: initial;
+      --tw-duration: initial;
       --tw-shadow: 0 0 #0000;
       --tw-shadow-color: initial;
       --tw-shadow-alpha: 100%;

@@ -27,13 +27,13 @@ class VideoMetadataFetcher:
                 "noplaylist": True,
             })
 
-        # with YoutubeDL(ydl_opts) as ydl:
-        #     info = ydl.extract_info(url, download=False)
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
           
-        #     return info
+            return info
 
         # Dummy implementation for testing without yt-dlp
-        with open("assets/single_video_sample.json") as f:
+        #with open("assets/single_video_sample.json") as f:
         #with open("assets/playlist_video_sample.json") as f:
-            info = json.load(f)
-            return info
+        #    info = json.load(f)
+        #    return info

@@ -14,9 +14,14 @@ def _truncate(value: Any, max_len: int) -> str:
     return str(value)[:max_len]
 
 
-def _create_formats(video: VideoSource, formats: Iterable[Dict[str, Any]]) -> List[VideoFormat]:
+def _create_formats(
+    video: VideoSource,
+    formats: Iterable[Dict[str, Any]],
+    *,
+    use_filtered: bool = True,
+) -> List[VideoFormat]:
     """Create VideoFormat records from yt-dlp format dictionaries."""
-    filtered_resolution_formats = _filtered_formats(formats) or formats
+    filtered_resolution_formats = _filtered_formats(formats) if use_filtered else list(formats)
     
     created: List[VideoFormat] = []
     for fmt in filtered_resolution_formats:
@@ -54,14 +59,14 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     """Filter formats based on size and resolution."""
     formats = []
     for format in raw_formats:
-        if (format.get("filesize") is not None) and (format.get("filesize") >= 5000): #and (format.get("ext") in ("mp4")):
+        if (format.get("filesize") is not None) and (format.get("filesize") >= 5000) and (format.get("ext") in ("mp4")):
             if (format.get("height") is not None) and (format.get("height") >= 480):
                 formats.append(format)
             elif format.get("vcodec") in (None, "none"): # audio aonly formats
                 formats.append(format)
             else:
                 pass
-    #formats = unique_by_key_max(formats, key="height", max_by="filesize")
+    formats = unique_by_key_max(formats, key="height", max_by="filesize")
     return sorted(formats, key=lambda f: f.get("height") or 0, reverse=True)
 
     
@@ -80,15 +85,16 @@ def build_playlist_preview(info: dict) -> tuple[List[Dict[str, Any]], List[Dict[
     return (normalize_entry(entries), formats)
 
 
-def launch_playlist_downloads(user, info: dict) -> List[DownloadJob]:
+def launch_playlist_downloads(user, info: dict, format_id: str) -> List[DownloadJob]:
     """Persist playlist entries and enqueue downloads."""
+
     entries = info.get("entries") or []
     if not entries:
         entries = [info]
 
     jobs: List[DownloadJob] = []
     for entry in entries:
-        entry_url = entry.get("webpage_url") or entry.get("url")
+        entry_url = entry.get("webpage_url") or entry.get("url") or entry.get("original_url")
         if not entry_url:
             continue
 
@@ -105,16 +111,24 @@ def launch_playlist_downloads(user, info: dict) -> List[DownloadJob]:
             },
         )
 
-        formats = entry.get("formats") or []
-        if not formats:
+        entry_formats = entry.get("formats") or []
+        if not entry_formats:
             entry_info = VideoMetadataFetcher().fetch(entry_url)
-            formats = entry_info.get("formats") or []
+            entry_formats = entry_info.get("formats") or []
 
-        created_formats = _create_formats(video, formats)
+        selected_formats = [
+            f for f in entry_formats if str(f.get("format_id")) == str(format_id)
+        ]
+        if not selected_formats:
+            available_ids = [str(f.get("format_id")) for f in entry_formats if f.get("format_id") is not None]
+            print("No matching format_id:", format_id, "available:", available_ids[:20])
+            continue
+
+        created_formats = _create_formats(video, selected_formats, use_filtered=False)
         if not created_formats:
             continue
 
-        chosen_format = _choose_format(created_formats)
+        chosen_format = created_formats[0]
         enforce_download_constraints(user, chosen_format)
 
         chosen_format.save()

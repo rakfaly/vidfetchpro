@@ -1,13 +1,15 @@
 from django.views.generic import ListView
 from django.shortcuts import redirect, render
+from django.contrib.auth import get_user_model
 from celery.result import AsyncResult
 from django.http import JsonResponse, HttpResponse
 from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
 from apps.downloads.forms import FetchMetadataForm
 from apps.history.models import History
 from apps.downloads.models import DownloadJob
-from utils.utils import normalize_entry
-from apps.downloads.services.playlist import build_playlist_preview, launch_playlist_downloads, _filtered_formats
+from apps.downloads.services.playlist import build_playlist_preview, launch_playlist_downloads
+from utils import utils
+
 
 
 class DownloadView(ListView):
@@ -75,8 +77,6 @@ def fetch_status(request):
                     "fetched_data": entries,
                     "formats": formats,
                 })
-            #return JsonResponse({'formats': formats[0]["height"]})
-                
 
         if result.failed():
             return HttpResponse(
@@ -87,3 +87,107 @@ def fetch_status(request):
             )
         return render(request, "downloads/fetched_spinner.html", {"task": result})
     return HttpResponse("")
+
+
+def prepare_download(request):
+    if request.method != "POST" or not request.htmx:
+        return redirect("apps.downloads:index")
+
+    fmt_id = request.POST.get("format")
+    if not fmt_id:
+        return HttpResponse("No format selected")
+
+    task_id = request.session.get("fetch_task_id")
+    if not task_id:
+        return HttpResponse("")
+
+    result = AsyncResult(task_id)
+    if not result.successful():
+        return HttpResponse("")
+
+    (_entries, formats) = build_playlist_preview(result.result)
+    fmt = next((f for f in formats if f.get("format_id") == fmt_id), None)
+    if not fmt:
+        return HttpResponse("Format not found")
+
+    if _entries[0]:
+        fmt_title = f"{_entries[0].get("title", "Untitle")}.{fmt.get('ext', '')}({' ' if fmt.get('height') else ''}{fmt.get('height', '')}p)".strip()
+    
+    return render(
+        request,
+        "downloads/prepare_download.html",
+        {"format_id": fmt_id, "format_title": fmt_title, "format": fmt},
+    )
+
+
+def start_download(request):
+    if request.method != "POST" or not request.htmx:
+        return redirect("apps.downloads:index")
+
+    fmt_id = request.POST.get("format")
+    if not fmt_id:
+        return HttpResponse("No format selected")
+    task_id = request.session.get("fetch_task_id")
+    if not task_id:
+        return HttpResponse("No task ID")
+
+    result = AsyncResult(task_id)
+    if not result.successful():
+        return HttpResponse("No result")
+
+    user = request.user
+    if not user.is_authenticated:
+        user_model = get_user_model()
+        user, _ = user_model.objects.get_or_create(
+            username="anonymous-user", defaults={"password": "anonymous-pass"}
+        )
+    jobs = launch_playlist_downloads(user, result.result, fmt_id)
+    if not jobs:
+        return HttpResponse("No jobs created (format_id mismatch or missing formats)")
+    job_id = jobs[0].id
+    request.session["download_job_id"] = str(job_id)
+    return render(
+        request,
+        "downloads/prepare_download.html",
+        {
+            "format_id": fmt_id,
+            "format_title": request.POST.get("format_title"),
+            "download_started": True,
+            "job_id": job_id,
+        },
+    )
+
+
+def progress_status(request):
+    try:
+        job_id = request.GET.get("job_id") or request.session.get("download_job_id")
+        if not job_id:
+            return HttpResponse("")
+
+        job = DownloadJob.objects.filter(id=job_id).select_related("format").first()
+        if not job:
+            return HttpResponse("")
+        duration = utils.format_duration(job.eta_seconds)
+        speed_kbps = None
+        if job.speed_kbps:
+            speed_kbps = utils.convert_bandwidth_binary(job.speed_kbps)
+        size_left = None
+        if job.bytes_downloaded and job.bytes_total:
+            size_left = f"{utils.format_bytes(job.bytes_downloaded)}/{utils.format_bytes(job.bytes_total)}"
+    except Exception as e:
+        return HttpResponse("<p>Error: %s</p>" % e)
+    
+    return render(
+        request,
+        "downloads/progress_status.html",
+        {
+            "job_id": job.id,
+            "format_title": job.video.title if job.video else "",
+            "download_progress": job.progress_percent,
+            "download_status": job.status,
+            "download_eta": duration,
+            "download_speed": speed_kbps,
+            "download_elapsed": size_left,
+        },
+    )
+    

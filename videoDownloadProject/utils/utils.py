@@ -1,7 +1,6 @@
 import math
 import re
 from datetime import datetime
-from kombu.utils.compat import entrypoints
 
 
 def format_duration(seconds: float | int) -> str:
@@ -64,3 +63,15 @@ def unique_by_key_max(items: list[dict], key: str, max_by: str) -> list[dict]:
         if k not in result or d[max_by] > result[k][max_by]:
             result[k] = d
     return list(result.values())
+
+
+def convert_bandwidth_binary(speed_kbps):
+    """
+    Convert bandwidth using binary units (1024-based)
+    """
+    if speed_kbps >= 1048576:  # 1024^2
+        return f"{speed_kbps / 1048576:.2f} Gb/s"
+    elif speed_kbps >= 1024:
+        return f"{speed_kbps / 1024:.2f} Mb/s"
+    else:
+        return f"{speed_kbps:.2f} kb/s"
