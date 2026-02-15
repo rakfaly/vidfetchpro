@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Features{% endblock %}
+{% block content %}
+    <section class="space-y-6">
+        <div class="card">
+            <h1 class="font-[var(--font-display)] text-2xl font-semibold">Features</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Built for speed, clarity, and responsible use.</p>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-3">
+            <div class="card space-y-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+                    <svg viewBox="0 0 24 24"
+                         class="h-6 w-6"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2">
+                        <path d="M12 3v18" />
+                        <path d="M5 8l7-5 7 5" />
+                    </svg>
+                </div>
+                <h2 class="font-[var(--font-display)] text-lg font-semibold">Instant Metadata</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Paste a URL and get title, duration, and available formats in seconds.
+                </p>
+            </div>
+            <div class="card space-y-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                    <svg viewBox="0 0 24 24"
+                         class="h-6 w-6"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2">
+                        <path d="M3 12h18" />
+                        <path d="M12 3v18" />
+                    </svg>
+                </div>
+                <h2 class="font-[var(--font-display)] text-lg font-semibold">Smart Format Choice</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Compare quality, size, and container before downloading the exact `format_id`.
+                </p>
+            </div>
+            <div class="card space-y-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <svg viewBox="0 0 24 24"
+                         class="h-6 w-6"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2">
+                        <path d="M4 12a8 8 0 0 1 16 0" />
+                        <path d="M12 12v5" />
+                    </svg>
+                </div>
+                <h2 class="font-[var(--font-display)] text-lg font-semibold">Live Progress</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Track speed, ETA, and percent completion as the download runs.
+                </p>
+            </div>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-2">
+            <div class="card space-y-3">
+                <h2 class="font-[var(--font-display)] text-lg font-semibold">Playlist Support</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Queue multiple entries in one click, with progress that rolls over job-by-job.
+                </p>
+            </div>
+            <div class="card space-y-3">
+                <h2 class="font-[var(--font-display)] text-lg font-semibold">Responsible Use</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Built-in safeguards encourage compliance with copyright and platform terms.
+                </p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Help{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="card">
+    <h1 class="font-[var(--font-display)] text-2xl font-semibold">Help Center</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      Everything you need to use VidFetch Pro safely and effectively.
+    </p>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="card space-y-3">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3l8 4-8 4-8-4 8-4z" />
+          <path d="M4 11l8 4 8-4" />
+          <path d="M4 15l8 4 8-4" />
+        </svg>
+      </div>
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Step 1: Fetch</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Paste a public video URL and click Fetch to load metadata and available formats.
+      </p>
+    </div>
+
+    <div class="card space-y-3">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16" />
+          <path d="M4 12h16" />
+          <path d="M4 17h10" />
+        </svg>
+      </div>
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Step 2: Choose Format</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Select a format and quality that matches your needs, then continue to download.
+      </p>
+    </div>
+
+    <div class="card space-y-3">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v12" />
+          <path d="M7 10l5 5 5-5" />
+          <path d="M5 21h14" />
+        </svg>
+      </div>
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Step 3: Download</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Click Download and watch the live progress bar update in real time.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="card space-y-3">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Troubleshooting</h2>
+      <ul class="list-disc pl-5 text-sm text-slate-600 dark:text-slate-300">
+        <li>Make sure the URL is public and accessible in your region.</li>
+        <li>If metadata stalls, try a different URL or refresh the page.</li>
+        <li>For large downloads, keep the tab open until completion.</li>
+      </ul>
+    </div>
+    <div class="card space-y-3">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Legal & Safe Use</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Use this tool only with content you own or have permission to download. If you are unsure about a video’s
+        legal status, do not proceed.
+      </p>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Need help? Email <span class="font-semibold">falywork@gmail.com</span>.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

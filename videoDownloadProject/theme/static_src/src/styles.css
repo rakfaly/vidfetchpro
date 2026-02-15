@@ -57,7 +57,7 @@
   }
 
   .btn-ghost {
-    @apply border border-slate-200 text-slate-700 hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-200;
+    @apply border border-slate-200 text-slate-700 hover:border-slate-300 hover:text-slate-800 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:text-slate-100 dark:hover:bg-slate-800;
   }
 
   .input {
@@ -72,5 +72,15 @@
 @layer utilities {
   .glass {
     @apply bg-white/80 backdrop-blur dark:bg-slate-950/80;
+  }
+
+  .htmx-added {
+    opacity: 0;
+  }
+
+  .htmx-settling .htmx-added,
+  .htmx-added.htmx-settling {
+    opacity: 1;
+    transition: opacity 200ms ease;
   }
 }

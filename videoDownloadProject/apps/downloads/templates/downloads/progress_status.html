@@ -1,7 +1,7 @@
 <div
     class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
-    {% if job_id %}
-    hx-get="{% url 'apps.downloads:progress_status' %}?job_id={{ job_id }}"
+    {% if poll %}
+    hx-get="{% url 'apps.downloads:progress_status' %}"
     hx-trigger="every 1s"
     hx-swap="outerHTML"
     {% endif %}

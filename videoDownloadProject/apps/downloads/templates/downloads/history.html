@@ -1,12 +1,10 @@
-<div class="flex items-center justify-between">
+<div class="flex pb-5 items-center justify-between">
     <h2 class="font-[var(--font-display)] text-lg font-semibold">Download history</h2>
-    <span class="text-xs text-emerald-500">
         {% if user.is_authenticated %}
-        {{ user.username }}
-        {% else %}
-        Login to view history
+        <button id="themeToggle" class="btn-ghost pill inline-flex items-center gap-2 pl-2 pr-2">
+            <span class="theme-label">Clear</span>
+        </button>
         {% endif %}
-    </span>
 </div>
 {% for item in history_list %}
 <div class="rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">

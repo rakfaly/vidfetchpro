@@ -8,7 +8,11 @@ from apps.videos.models import VideoFormat, VideoSource
 from utils.utils import normalize_entry, unique_by_key_max
 
 def _truncate(value: Any, max_len: int) -> str:
-    """Coerce a value to string and truncate to max_len."""
+    """
+    Coerce a value to string and truncate to max_len.
+
+    Returns an empty string for None values.
+    """
     if value is None:
         return ""
     return str(value)[:max_len]
@@ -20,7 +24,11 @@ def _create_formats(
     *,
     use_filtered: bool = True,
 ) -> List[VideoFormat]:
-    """Create VideoFormat records from yt-dlp format dictionaries."""
+    """
+    Build unsaved VideoFormat records from yt-dlp format dictionaries.
+
+    If `use_filtered` is True, applies `_filtered_formats` before mapping.
+    """
     filtered_resolution_formats = _filtered_formats(formats) if use_filtered else list(formats)
     
     created: List[VideoFormat] = []
@@ -45,7 +53,11 @@ def _create_formats(
 
 
 def _choose_format(formats: List[VideoFormat]) -> VideoFormat:
-    """Choose a preferred format (MP4 video with highest resolution)."""
+    """
+    Choose a preferred format (MP4 video with highest resolution).
+
+    Ranking prefers MP4, non-audio-only, then highest height.
+    """
     def rank(vf: VideoFormat) -> tuple:
         return (
             1 if vf.container == "mp4" else 0,
@@ -56,7 +68,12 @@ def _choose_format(formats: List[VideoFormat]) -> VideoFormat:
 
 
 def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Filter formats based on size and resolution."""
+    """
+    Filter formats based on size, container, and resolution.
+
+    Keeps MP4 formats >= 480p, and audio-only formats.
+    De-duplicates by max filesize per height.
+    """
     formats = []
     for format in raw_formats:
         if (format.get("filesize") is not None) and (format.get("filesize") >= 5000) and (format.get("ext") in ("mp4")):
@@ -71,12 +88,22 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
 
     
 def fetch_data(playlist_url: str) -> Dict[str, Any]:
-    """Fetch raw metadata for a playlist or single video URL."""
+    """
+    Fetch raw metadata for a playlist or single video URL.
+
+    Returns the raw yt-dlp info dict.
+    """
     return VideoMetadataFetcher().fetch(playlist_url)
     
 
 def build_playlist_preview(info: dict) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Build preview data for UI without saving any models."""
+    """
+    Build preview data for UI without saving any models.
+
+    Returns:
+    - normalized entry list
+    - filtered format list
+    """
     entries = info.get("entries") or []
     if not entries:
         entries = [info]
@@ -86,7 +113,12 @@ def build_playlist_preview(info: dict) -> tuple[List[Dict[str, Any]], List[Dict[
 
 
 def launch_playlist_downloads(user, info: dict, format_id: str) -> List[DownloadJob]:
-    """Persist playlist entries and enqueue downloads."""
+    """
+    Persist playlist entries and enqueue downloads for a selected format.
+
+    Creates VideoSource + VideoFormat records, enforces user constraints,
+    and enqueues a download job per entry.
+    """
 
     entries = info.get("entries") or []
     if not entries:

@@ -14,15 +14,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
 
+from django.conf import settings
+from django.contrib import admin
+from django.urls import include, path
+from django.views.generic import TemplateView
+
+from apps.downloads.views import DownloadView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('downloads/', include('apps.downloads.urls')),
-    path('history/', include('apps.history.urls')),
+    path("admin/", admin.site.urls),
+    path("", DownloadView.as_view(), name="index"),
+    path("downloads/", include("apps.downloads.urls")),
+    path("history/", include("apps.history.urls")),
+    path("users/", include("apps.users.urls")),
+    path("terms/", TemplateView.as_view(template_name="legal/terms.html"), name="terms"),
+    path("privacy/", TemplateView.as_view(template_name="legal/privacy.html"), name="privacy"),
+    path("help/", TemplateView.as_view(template_name="help.html"), name="help"),
+    path("features/", TemplateView.as_view(template_name="features.html"), name="features"),
+    path("formats/", TemplateView.as_view(template_name="formats.html"), name="formats"),
+    path("pricing/", TemplateView.as_view(template_name="pricing.html"), name="pricing"),
+    path("create-account/", TemplateView.as_view(template_name="users/create_account.html"), name="create_account"),
+    path("profile/", TemplateView.as_view(template_name="users/profile.html"), name="profile"),
 ]
 
 if settings.DEBUG:

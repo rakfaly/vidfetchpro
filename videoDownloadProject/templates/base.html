@@ -1,61 +1,121 @@
 {% load static tailwind_tags %}
 {% load django_htmx %}
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" class="h-full">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}VidFetch Pro{% endblock %}</title>
-  {% tailwind_css %}
-  <link rel="stylesheet" href="{% static 'fonts/font.css' %}" />
-  {% htmx_script %}
-</head>
-
-<body class="h-full" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
-  <div class="min-h-full">
-    <header class="sticky top-0 z-30 border-b border-slate-200/70 glass">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <div class="flex items-center gap-3">
-          <a href="{% url 'apps.downloads:index' %}">
-            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white"
-              style="box-shadow: var(--shadow-glow);">
-              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 5h16v14H4z" />
-                <path d="M10 9l6 3-6 3z" />
-              </svg>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>
+            {% block title %}VidFetch Pro{% endblock %}
+        </title>
+        {% tailwind_css %}
+        <link rel="stylesheet" href="{% static 'fonts/font.css' %}" />
+        <link rel="stylesheet"
+              href="{% static 'css/fontawesome/css/all.min.css' %}" />
+        {% htmx_script %}
+    </head>
+    <body class="h-full"
+          hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'
+          style="--nav-height: 72px">
+        <div class="min-h-full">
+            <header class="sticky top-0 z-30 border-b border-slate-200/70 glass">
+                <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <a href="{% url 'apps.downloads:index' %}">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white"
+                                 style="box-shadow: var(--shadow-glow)">
+                                <svg viewBox="0 0 24 24"
+                                     class="h-5 w-5"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M4 5h16v14H4z" />
+                                    <path d="M10 9l6 3-6 3z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-[var(--font-display)] text-lg font-semibold">VidFetch Pro</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Download any video in seconds</p>
+                            </div>
+                        </a>
+                    </div>
+                    <nav class="hidden items-center gap-5 text-xs font-medium text-slate-500 dark:text-slate-400 md:flex">
+                        <a href="{% url 'features' %}"
+                           class="hover:text-slate-900 dark:hover:text-white">Features</a>
+                        <a href="{% url 'formats' %}"
+                           class="hover:text-slate-900 dark:hover:text-white">Formats</a>
+                        <a href="{% url 'pricing' %}"
+                           class="hover:text-slate-900 dark:hover:text-white">Pricing</a>
+                        <a href="{% url 'help' %}"
+                           class="hover:text-slate-900 dark:hover:text-white">Help</a>
+                    </nav>
+                    <div class="relative flex items-center gap-3">
+                        <button id="themeToggle" class="pill inline-flex items-center gap-2">
+                            <span class="theme-label">Dark</span>
+                            <span class="rounded-full bg-slate-900 px-2 py-1 text-[10px] uppercase tracking-wide text-white dark:bg-white dark:text-slate-900">Mode</span>
+                        </button>
+                        {% if not user.is_authenticated %}
+                            <button class="btn btn-ghost"
+                                    type="button"
+                                    hx-get="{% url 'apps.users:login_popover' %}"
+                                    hx-target="#loginModalRoot"
+                                    hx-swap="outerHTML transition:true">Login</button>
+                            <a href="{% url 'create_account' %}" class="btn btn-primary">Create account</a>
+                        {% else %}
+                            <button class="btn btn-ghost"
+                                    type="button"
+                                    hx-get="{% url 'apps.users:account_menu' %}"
+                                    hx-target="#accountMenuRoot"
+                                    hx-swap="outerHTML transition:true">Account</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+            <div id="pageBody" class="relative">
+                <div id="loginModalRoot"></div>
+                <div id="accountMenuRoot"></div>
+                <main class="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
+                    {% block content %}{% endblock %}
+                </main>
+                <footer class="border-t border-slate-200/70 bg-white/70 py-8 text-xs text-slate-500 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-400">
+                    <div class="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-[1.2fr_0.8fr]">
+                        <div class="space-y-3">
+                            <p class="font-[var(--font-display)] text-base font-semibold text-slate-900 dark:text-white">Legal Notice</p>
+                            <p>
+                                This service is provided for lawful personal use only. Do not download, copy, or distribute content you do
+                                not own or lack explicit permission to use. You are solely responsible for ensuring your use complies with
+                                applicable laws, copyright rules, and platform terms.
+                            </p>
+                            <p>
+                                We do not host, store, or index third‑party media. Downloading content is performed at your direction and
+                                risk. We reserve the right to block access or terminate accounts that violate these terms.
+                            </p>
+                            <div class="flex flex-wrap gap-4 pt-2 text-xs text-slate-500 dark:text-slate-400">
+                                <a href="{% url 'terms' %}"
+                                   class="underline hover:text-slate-900 dark:hover:text-white">Terms of Service</a>
+                                <a href="{% url 'privacy' %}"
+                                   class="underline hover:text-slate-900 dark:hover:text-white">Privacy Policy</a>
+                                <a href="mailto:falywork@gmail.com"
+                                   class="underline hover:text-slate-900 dark:hover:text-white">Contact</a>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="font-[var(--font-display)] text-base font-semibold text-slate-900 dark:text-white">Disclaimers</p>
+                            <p>
+                                This tool is not affiliated with any video platform. All trademarks and copyrights belong to their
+                                respective owners. Availability and legality of content may vary by region.
+                            </p>
+                            <p>
+                                Use of this service constitutes acceptance of these terms. If you are unsure whether a download is legal,
+                                do not proceed.
+                            </p>
+                            <p class="pt-2 text-xs text-slate-500 dark:text-slate-400">Made by @falyrakotomaharo.</p>
+                        </div>
+                    </div>
+                </footer>
             </div>
-            <div>
-              <p class="font-[var(--font-display)] text-lg font-semibold">VidFetch Pro</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Download any video in seconds</p>
-            </div>
-          </a>
         </div>
-        <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300 md:flex">
-          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Features</a>
-          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Formats</a>
-          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Pricing</a>
-          <a href="#" class="hover:text-slate-900 dark:hover:text-white">Help</a>
-        </nav>
-        <div class="flex items-center gap-3">
-          <button id="themeToggle" class="pill inline-flex items-center gap-2">
-            <span class="theme-label">Dark</span>
-            <span
-              class="rounded-full bg-slate-900 px-2 py-1 text-[10px] uppercase tracking-wide text-white dark:bg-white dark:text-slate-900">Mode</span>
-          </button>
-          <button class="btn btn-ghost">Login</button>
-          <button class="btn btn-primary">Create account</button>
-        </div>
-      </div>
-    </header>
-
-    <main class="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
-      {% block content %}{% endblock %}
-    </main>
-  </div>
-  <script src="{% static 'js/app.js' %}"></script>
-
-</body>
-
+        <script src="{% static 'js/app.js' %}"></script>
+    </body>
 </html>

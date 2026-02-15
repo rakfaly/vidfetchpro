@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Formats{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="card">
+    <h1 class="font-[var(--font-display)] text-2xl font-semibold">Formats</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      Choose the right balance of quality, size, and compatibility.
+    </p>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="card space-y-3">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Video + Audio (MP4)</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Best for general playback on all devices. Recommended for most users.
+      </p>
+      <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+        <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">720p</span>
+        <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">1080p</span>
+        <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">4K (logged users)</span>
+      </div>
+    </div>
+    <div class="card space-y-3">
+      <h2 class="font-[var(--font-display)] text-lg font-semibold">Audio Only</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Smallest file size, fastest download. Great for podcasts and music.
+      </p>
+      <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+        <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">MP3</span>
+        <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">M4A</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card space-y-3">
+    <h2 class="font-[var(--font-display)] text-lg font-semibold">How We Choose</h2>
+    <p class="text-sm text-slate-600 dark:text-slate-300">
+      Formats are filtered by size and resolution to ensure stable, high-quality downloads. When you pick a format,
+      we use the exact yt-dlp `format_id` so you get what you selected.
+    </p>
+  </div>
+</section>
+{% endblock %}

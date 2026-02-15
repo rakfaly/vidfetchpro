@@ -3,7 +3,7 @@
 **Audience:** Developers
 
 ## Overview
-A Django-based web app that lets users paste a video URL, fetch metadata, select a format, and download the file. The frontend is HTML + Tailwind CSS + JavaScript. The backend is Django with Celery + RabbitMQ for background download jobs. PostgreSQL is the only database. Files are stored locally under `media/downloads/`.
+A Django-based web app that lets users paste a video URL, fetch metadata, select a format, and download the file. The frontend is HTML + Tailwind CSS + HTMX. The backend is Django with Celery + RabbitMQ for background download jobs. PostgreSQL is the database. Files are stored locally under `media/downloads/`.
 
 ## Goals
 - Provide a smooth, professional download workflow (fetch → format → download → progress).
@@ -30,7 +30,7 @@ A Django-based web app that lets users paste a video URL, fetch metadata, select
 
 3. **Download**
    - User clicks Download.
-   - Start background job (Celery).
+   - Start background job(s) (Celery).
    - Update progress: percent, speed, ETA, bytes downloaded.
 
 4. **Download history**
@@ -53,12 +53,20 @@ A Django-based web app that lets users paste a video URL, fetch metadata, select
    - Run yt-dlp metadata extraction
    - Persist `VideoSource` + `VideoFormat` list
 
-2. **Download**
+2. **Format selection**
+   - Store yt-dlp `format_id`
+   - Render prepare download step
+
+3. **Download**
    - Validate user plan
-   - Create `DownloadJob`
-   - Enqueue Celery task
+   - Create `DownloadJob` per entry (playlist supported)
+   - Enqueue Celery task(s)
    - Track progress updates
    - Update job status on completion/failure
+
+4. **Progress polling (HTMX)**
+   - Poll the progress endpoint every second while any job is active
+   - Stop polling when all jobs are completed/failed/cancelled
 
 ## Security Constraints
 - Validate URLs (scheme + host allowlist).

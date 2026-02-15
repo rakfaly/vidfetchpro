@@ -1,6 +1,9 @@
 <!-- Spinner -->
-<div id="fetch-spinner" class="card" hx-get="{% url 'apps.downloads:fetch_status' %}" hx-target="#fetched-metadata"
-    hx-trigger="every 2s">
+<div id="fetch-spinner"
+     class="card"
+     hx-get="{% url 'apps.downloads:fetch_status' %}"
+     hx-target="#fetched-metadata"
+     hx-trigger="every 2s">
     <div class="flex items-center justify-between">
         <h2 class="font-[var(--font-display)] text-lg font-semibold">Fetching metadata</h2>
         <span class="text-xs text-slate-500">Please wait</span>
