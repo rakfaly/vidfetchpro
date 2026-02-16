@@ -110,6 +110,16 @@ class VideoDownload:
             "format": format_selector,
             "outtmpl": output_path,
             "progress_hooks": [self._progress_hook],
+            "noplaylist": True,
+            "socket_timeout": 15,
+            "retries": 3,
+            "fragment_retries": 3,
+            "concurrent_fragment_downloads": 8,
+            # Prefer Android client to reduce JS challenge friction.
+            "extractor_args": {"youtube": {"player_client": ["android"]}},
+            # Enable JS challenge solver via remote components.
+            "remote_components": ["ejs:github"],
+            "js_runtimes": {"deno": {}},
         }
 
         with YoutubeDL(ydl_opts) as ydl:

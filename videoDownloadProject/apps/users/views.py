@@ -1,3 +1,5 @@
+"""Views for user authentication and account-related HTMX interactions."""
+
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
@@ -45,6 +47,7 @@ def account_menu(request):
 
 
 def create_account(request):
+    """Create a new user account and log them in if the form is valid."""
     if request.user.is_authenticated:
         return redirect("apps.downloads:index")
 
@@ -63,6 +66,7 @@ def create_account(request):
 
 @require_http_methods(["POST"])
 def logout_user(request):
+    """Log out the current user and return an HTMX-friendly response."""
     logout(request)
     if not request.htmx:
         return HttpResponse("")

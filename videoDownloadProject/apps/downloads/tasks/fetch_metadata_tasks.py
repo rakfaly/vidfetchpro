@@ -7,14 +7,15 @@ from apps.downloads.services.video_metadata import VideoMetadataFetcher
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,),
+    bind=True,
+    autoretry_for=(Exception,),
     retry_backoff=True,
     retry_jitter=True,
     retry_kwargs={"max_retries": 5},
 )
 def run_fetch_metadata(self, url: str) -> dict:
     """Fetch video metadata inside a Celery worker."""
-    #info = VideoMetadataFetcher().fetch(url, fast=True)
+    # info = VideoMetadataFetcher().fetch(url, fast=True)
     # Return a trimmed payload to keep results small and fast.
     # return {
     #     "id": info.get("id"),

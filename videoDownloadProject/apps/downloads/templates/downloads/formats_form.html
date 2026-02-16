@@ -4,46 +4,61 @@
         <span class="text-xs text-slate-500">Step 3</span>
     </div>
     <div class="mt-4 grid gap-3">
-        <form
-            hx-target="#download-section"
-            hx-post="{% url 'apps.downloads:prepare_download' %}"
-            hx-trigger="load change from:input[type='radio']"
-            hx-include="[name='format']">
+        <form hx-target="#download-section"
+              hx-post="{% url 'apps.downloads:prepare_download' %}"
+              hx-trigger="load change from:input[type='radio']"
+              hx-include="[name='format']">
             {% csrf_token %}
-            <label
-                class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800">
+            <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800 {% if best_format and best_format.format_id|stringformat:'s' not in allowed_format_ids %}opacity-50 cursor-not-allowed{% endif %}">
                 <span>
                     <span class="block font-semibold text-emerald-500">Best quality</span>
                     <span class="block text-xs text-emerald-500">
-                        {% if formats.0.height and formats.0.height >= 720 %}
-                        Best quality video + audio ({{ formats.0.filesize|filesizeformat }} · {{ formats.0.ext }} · {% if formats.0.height %}{{ formats.0.height }}p{% endif %})
+                        {% if best_format and best_format.height and best_format.height >= 720 %}
+                            Best quality video + audio ({{ best_format.filesize|filesizeformat }} · {{ best_format.ext }} ·
+                            {% if best_format.height %}{{ best_format.height }}p{% endif %}
+                            )
                         {% endif %}
                     </span>
                 </span>
-                <input type="radio" name="format" value="{{ formats.0.format_id }}" class="h-4 w-4 text-brand-500" checked />
+                <input type="radio"
+                       name="format"
+                       value="{{ best_format.format_id }}"
+                       class="h-4 w-4 text-brand-500"
+                       {% if best_format and best_format.format_id|stringformat:'s' == default_format_id %}checked{% endif %}
+                       {% if best_format and best_format.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %} />
             </label>
             {% for fmt in formats %}
-            <label
-                class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800">
-                <span>
-                    <span class="block font-semibold">{{ fmt.ext }} · {% if fmt.height %}{{ fmt.height }}p{% endif %}</span>
-                    <span class="block text-xs text-slate-500">
-                        {% if fmt.height and fmt.height >= 720 %}
-                        High quality video + audio ({{ fmt.filesize|filesizeformat }})
-                        {% elif fmt.height and fmt.height >= 480 %}
-                        Balanced size and quality ({{ fmt.filesize|filesizeformat }})
-                        {% elif fmt.acodec != 'none' %}
-                        Audio only (fastest) ({{ fmt.filesize|filesizeformat }})
-                        {% else %}
-                        Unknown format
-                        {% endif %}
+                <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800 {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}opacity-50 cursor-not-allowed{% endif %}">
+                    <span>
+                        <span class="block font-semibold">{{ fmt.ext }} ·
+                            {% if fmt.height %}{{ fmt.height }}p{% endif %}
+                        </span>
+                        <span class="block text-xs text-slate-500">
+                            {% if fmt.height and fmt.height >= 720 %}
+                                High quality video + audio ({{ fmt.filesize|filesizeformat }})
+                            {% elif fmt.height and fmt.height >= 480 %}
+                                Balanced size and quality ({{ fmt.filesize|filesizeformat }})
+                            {% elif fmt.acodec != 'none' %}
+                                Audio only (fastest) ({{ fmt.filesize|filesizeformat }})
+                            {% else %}
+                                Unknown format
+                            {% endif %}
+                        </span>
                     </span>
-                </span>
-                <input type="radio" name="format" value="{{ fmt.format_id }}" class="h-4 w-4 text-brand-500" />
-            </label>
+                    <div class="flex gap-2">
+                        {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}
+                            <a href="{% url 'pricing' %}" class="block text-xs text-slate-500">Premium only</a>
+                        {% endif %}
+                        <input type="radio"
+                               name="format"
+                               value="{{ fmt.format_id }}"
+                               class="h-4 w-4 text-brand-500"
+                               {% if fmt.format_id|stringformat:'s' == default_format_id %}checked{% endif %}
+                               {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %} />
+                    </div>
+                </label>
             {% endfor %}
         </form>
     </div>
 </div>
-
 {% include "downloads/prepare_download.html" %}

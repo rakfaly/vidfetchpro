@@ -1,9 +1,1 @@
-Django
-celery
-django-celery-results
-django-htmx
-django-tailwind
-django-browser-reload
-python-dotenv
-psycopg2-binary
-yt-dlp
+-r requirements/prod.txt

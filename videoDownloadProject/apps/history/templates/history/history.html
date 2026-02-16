@@ -1,31 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Download History{% endblock %}
-
+{% block title %}
+    Download History
+{% endblock title %}
 {% block content %}
-<section class="space-y-6">
-    <div class="card">
-        {% include "downloads/history.html" %}
-    </div>
-    {% block history-paginator %}
-        {% if is_paginated %}
-        <div class="mt-6 flex items-center justify-between text-sm">
-            <div class="text-slate-500">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-            </div>
-            <div class="flex items-center gap-2">
-            {% if page_obj.has_previous %}
-                <a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-            {% else %}
-                <span class="btn btn-ghost opacity-50 pointer-events-none">Previous</span>
+    <section class="space-y-6">
+        <div class="card" id="history-card">{% include "downloads/history.html" %}</div>
+        {% block history-paginator %}
+            {% if is_paginated %}
+                <div class="mt-6 flex items-center justify-between text-sm">
+                    <div class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+                    <div class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-ghost"
+                               href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        {% else %}
+                            <span class="btn btn-ghost opacity-50 pointer-events-none">Previous</span>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-primary" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        {% else %}
+                            <span class="btn btn-primary opacity-50 pointer-events-none">Next</span>
+                        {% endif %}
+                    </div>
+                </div>
             {% endif %}
-            {% if page_obj.has_next %}
-                <a class="btn btn-primary" href="?page={{ page_obj.next_page_number }}">Next</a>
-            {% else %}
-                <span class="btn btn-primary opacity-50 pointer-events-none">Next</span>
-            {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    {% endblock %}
-</section>
-{% endblock %}
+        {% endblock history-paginator %}
+    </section>
+{% endblock content %}

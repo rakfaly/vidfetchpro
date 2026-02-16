@@ -1,29 +1,32 @@
 from celery.result import AsyncResult
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 
 from apps.downloads.forms import FetchMetadataForm
 from apps.downloads.models import DownloadJob
+from apps.downloads.services.access import DownloadPolicy
 from apps.downloads.services.playlist import (
     build_playlist_preview,
     launch_playlist_downloads,
 )
 from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
 from apps.history.models import History
+from apps.users.models import UserProfile
 from utils import utils
 
 
 class DownloadView(ListView):
-    """Dashboard showing the download flow and recent jobs."""
+    """Dashboard view for the download flow and recent job history."""
 
     model = DownloadJob
     template_name = "downloads/index.html"
 
     def get_context_data(self, **kwargs):
         """
-        Build template context for the dashboard.
+        Build template context for the dashboard view.
 
         Adds:
         - `fetch_form`: the URL input form.
@@ -43,6 +46,28 @@ class DownloadView(ListView):
         else:
             context["history_list"] = []
         return context
+
+
+def _get_download_policy(user) -> DownloadPolicy:
+    """Return the effective download policy for an authenticated or anonymous user."""
+    if user and getattr(user, "is_authenticated", False):
+        profile = getattr(user, "profile", None)
+        if profile:
+            return DownloadPolicy(
+                daily_limit=profile.daily_limit,
+                max_resolution=profile.max_resolution,
+                is_unlimited=profile.is_unlimited,
+            )
+        return DownloadPolicy(
+            daily_limit=getattr(settings, "VIDEO_DEFAULT_DAILY_LIMIT", 5),
+            max_resolution=getattr(settings, "VIDEO_DEFAULT_MAX_RESOLUTION", 720),
+            is_unlimited=False,
+        )
+    return DownloadPolicy(
+        daily_limit=getattr(settings, "VIDEO_ANON_DAILY_LIMIT", 3),
+        max_resolution=getattr(settings, "VIDEO_ANON_MAX_RESOLUTION", 480),
+        is_unlimited=False,
+    )
 
 
 def fetch_metadata(request):
@@ -93,6 +118,31 @@ def fetch_status(request):
 
         if result.successful():
             entries, formats = build_playlist_preview(result.result)
+            policy = _get_download_policy(request.user)
+            max_resolution = policy.max_resolution
+            is_unlimited = policy.is_unlimited
+            allowed_format_ids = []
+            for fmt in formats:
+                fmt_id = (
+                    str(fmt.get("format_id"))
+                    if fmt.get("format_id") is not None
+                    else None
+                )
+                height = fmt.get("height")
+                if not fmt_id:
+                    continue
+                if is_unlimited:
+                    allowed_format_ids.append(fmt_id)
+                    continue
+                if (
+                    height is None
+                    or (max_resolution is None)
+                    or (height <= max_resolution)
+                ):
+                    allowed_format_ids.append(fmt_id)
+
+            default_format_id = allowed_format_ids[0] if allowed_format_ids else None
+            best_format = formats[0] if formats else None
 
             return render(
                 request,
@@ -100,6 +150,9 @@ def fetch_status(request):
                 {
                     "fetched_data": entries,
                     "formats": formats,
+                    "best_format": best_format,
+                    "allowed_format_ids": allowed_format_ids,
+                    "default_format_id": default_format_id,
                 },
             )
 
@@ -165,7 +218,7 @@ def start_download(request):
     if request.method != "POST" or not request.htmx:
         return redirect("apps.downloads:index")
 
-    fmt_id = request.POST.get("format")
+    fmt_id = request.POST.get("format", 0)
     if not fmt_id:
         return HttpResponse("No format selected")
     task_id = request.session.get("fetch_task_id")
@@ -182,6 +235,7 @@ def start_download(request):
         user, _ = user_model.objects.get_or_create(
             username="anonymous-user", defaults={"password": "anonymous-pass"}
         )
+
     jobs = launch_playlist_downloads(user, result.result, fmt_id)
     if not jobs:
         return HttpResponse("No jobs created (format_id mismatch or missing formats)")

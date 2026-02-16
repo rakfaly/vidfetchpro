@@ -4,7 +4,11 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-from apps.downloads.services.exceptions import InvalidVideoUrl, RateLimitExceeded, FormatNotAllowed
+from apps.downloads.services.exceptions import (
+    FormatNotAllowed,
+    InvalidVideoUrl,
+    RateLimitExceeded,
+)
 
 
 def validate_url(value: str) -> str:
@@ -35,7 +39,11 @@ def ensure_rate_limit(profile, downloads_today: int) -> None:
 
     if profile and profile.is_unlimited:
         return
-    if profile and (profile.daily_limit is not None) and downloads_today >= profile.daily_limit:
+    if (
+        profile
+        and (profile.daily_limit is not None)
+        and downloads_today >= profile.daily_limit
+    ):
         raise RateLimitExceeded("Daily download limit exceeded")
 
 
@@ -45,8 +53,8 @@ def ensure_format_allowed(profile, video_format) -> None:
     if profile and profile.is_unlimited:
         return
 
-    if profile and profile.max_resolution and video_format.height:
-        if video_format.height > profile.max_resolution:
+    if profile and profile.max_resolution and video_format.get("height"):
+        if video_format.get("height") > profile.max_resolution:
             raise FormatNotAllowed("Selected format is not allowed for your plan")
 
     if video_format.is_premium_only:
