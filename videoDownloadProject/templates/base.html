@@ -61,7 +61,7 @@
                                     hx-get="{% url 'apps.users:login_popover' %}"
                                     hx-target="#loginModalRoot"
                                     hx-swap="outerHTML transition:true">Login</button>
-                            <a href="{% url 'create_account' %}" class="btn btn-primary">Create account</a>
+                            <a href="{% url 'apps.users:create_account' %}" class="btn btn-primary">Create account</a>
                         {% else %}
                             <button class="btn btn-ghost"
                                     type="button"

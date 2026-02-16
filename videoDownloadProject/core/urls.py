@@ -28,14 +28,31 @@ urlpatterns = [
     path("downloads/", include("apps.downloads.urls")),
     path("history/", include("apps.history.urls")),
     path("users/", include("apps.users.urls")),
-    path("terms/", TemplateView.as_view(template_name="legal/terms.html"), name="terms"),
-    path("privacy/", TemplateView.as_view(template_name="legal/privacy.html"), name="privacy"),
+    path(
+        "terms/", TemplateView.as_view(template_name="legal/terms.html"), name="terms"
+    ),
+    path(
+        "privacy/",
+        TemplateView.as_view(template_name="legal/privacy.html"),
+        name="privacy",
+    ),
     path("help/", TemplateView.as_view(template_name="help.html"), name="help"),
-    path("features/", TemplateView.as_view(template_name="features.html"), name="features"),
-    path("formats/", TemplateView.as_view(template_name="formats.html"), name="formats"),
-    path("pricing/", TemplateView.as_view(template_name="pricing.html"), name="pricing"),
-    path("create-account/", TemplateView.as_view(template_name="users/create_account.html"), name="create_account"),
-    path("profile/", TemplateView.as_view(template_name="users/profile.html"), name="profile"),
+    path(
+        "features/",
+        TemplateView.as_view(template_name="features.html"),
+        name="features",
+    ),
+    path(
+        "formats/", TemplateView.as_view(template_name="formats.html"), name="formats"
+    ),
+    path(
+        "pricing/", TemplateView.as_view(template_name="pricing.html"), name="pricing"
+    ),
+    path(
+        "profile/",
+        TemplateView.as_view(template_name="users/profile.html"),
+        name="profile",
+    ),
 ]
 
 if settings.DEBUG:

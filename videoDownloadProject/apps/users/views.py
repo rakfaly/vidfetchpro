@@ -1,9 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import LoginForm
+from .forms import CustomUserCreationForm, LoginForm
 
 
 @require_http_methods(["GET", "POST"])
@@ -19,7 +20,6 @@ def login_popover(request):
     if request.GET.get("close") == "1":
         return HttpResponse('<div id="loginModalRoot"></div>')
 
-    # form = AuthenticationForm(request, data=request.POST or None)
     form = LoginForm(data=request.POST or None)
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
@@ -45,9 +45,20 @@ def account_menu(request):
 
 
 def create_account(request):
-    if not request.htmx or request.user.is_authenticated:
-        return HttpResponse("<p>You already authenticated.</p>")
-    return HttpResponse("")
+    if request.user.is_authenticated:
+        return redirect("apps.downloads:index")
+
+    form = CustomUserCreationForm(request.POST or None)
+    if request.method == "POST":
+        is_checked = "checkbox_policy_terms" in request.POST
+        if not is_checked:
+            messages.warning(request, "Please accept Terms and Privacy Policy.")
+        if is_checked and form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("apps.downloads:index")
+
+    return render(request, "users/create_account.html", {"form": form})
 
 
 @require_http_methods(["POST"])
