@@ -8,7 +8,7 @@
         </button>
     {% endif %}
 </div>
-{% if user.is_authenticated %}
+{% if user.is_authenticated and history_list %}
     <dialog id="clearHistoryDialog"
             class="modal-backdrop p-0"
             onclick="if (event.target === this) this.close()">
@@ -27,9 +27,7 @@
                         hx-target="#history-card"
                         hx-swap="innerHTML transition:true"
                         hx-trigger="click"
-                        hx-on="htmx:afterRequest: this.closest('dialog').close()">
-                    Yes, clear
-                </button>
+                        hx-on="htmx:afterRequest: this.closest('dialog').close()">Yes, clear</button>
             </div>
         </div>
     </dialog>

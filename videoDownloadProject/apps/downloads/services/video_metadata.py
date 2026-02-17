@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict
 
 from apps.downloads.services.exceptions import DownloadFailed
@@ -44,5 +45,5 @@ class VideoMetadataFetcher:
         # Dummy implementation for testing without yt-dlp
         # with open("assets/single_video_sample.json") as f:
         # with open("assets/playlist_video_sample.json") as f:
-        #    info = json.load(f)
-        #    return info
+        #     info = json.load(f)
+        #     return info

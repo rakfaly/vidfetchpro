@@ -1,32 +1,14 @@
 <div class="card ">
     <div class="flex items-center justify-between">
-        <h2 class="font-[var(--font-display)] text-lg font-semibold">Choose format</h2>
+        <h2 class="text-lg font-semibold">Choose format</h2>
         <span class="text-xs text-slate-500">Step 3</span>
     </div>
     <div class="mt-4 grid gap-3">
         <form hx-target="#download-section"
               hx-post="{% url 'apps.downloads:prepare_download' %}"
-              hx-trigger="load change from:input[type='radio']"
-              hx-include="[name='format']">
+              hx-trigger="load, change"
+              hx-swap="outerHTML">
             {% csrf_token %}
-            <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800 {% if best_format and best_format.format_id|stringformat:'s' not in allowed_format_ids %}opacity-50 cursor-not-allowed{% endif %}">
-                <span>
-                    <span class="block font-semibold text-emerald-500">Best quality</span>
-                    <span class="block text-xs text-emerald-500">
-                        {% if best_format and best_format.height and best_format.height >= 720 %}
-                            Best quality video + audio ({{ best_format.filesize|filesizeformat }} · {{ best_format.ext }} ·
-                            {% if best_format.height %}{{ best_format.height }}p{% endif %}
-                            )
-                        {% endif %}
-                    </span>
-                </span>
-                <input type="radio"
-                       name="format"
-                       value="{{ best_format.format_id }}"
-                       class="h-4 w-4 text-brand-500"
-                       {% if best_format and best_format.format_id|stringformat:'s' == default_format_id %}checked{% endif %}
-                       {% if best_format and best_format.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %} />
-            </label>
             {% for fmt in formats %}
                 <label class="flex items-center justify-between rounded-2xl border border-slate-200 p-4 text-sm hover:border-brand-500 dark:border-slate-800 {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}opacity-50 cursor-not-allowed{% endif %}">
                     <span>
@@ -47,7 +29,8 @@
                     </span>
                     <div class="flex gap-2">
                         {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}
-                            <a href="{% url 'pricing' %}" class="block text-xs text-slate-500">Premium only</a>
+                            <a href="{% url 'pricing' %}"
+                               class="block text-xs text-emerald-500 underline">Premium Member</a>
                         {% endif %}
                         <input type="radio"
                                name="format"

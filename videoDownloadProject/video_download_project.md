@@ -15,7 +15,7 @@ A Django-based web app that lets users paste a video URL, fetch metadata, select
 - **Async Tasks:** Celery with RabbitMQ
 - **Database:** PostgreSQL
 - **Storage:** Local disk (`MEDIA_ROOT/downloads/`)
-- **Frontend:** HTML, Tailwind CSS, JavaScript
+- **Frontend:** HTML, Tailwind CSS, JavaScript, HTMX
 - **Downloader:** yt-dlp
 
 ## Core Features

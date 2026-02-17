@@ -11,15 +11,16 @@
             {% csrf_token %}
             <input type="hidden" name="format" value="{{ format_id }}" />
             <input type="hidden" name="format_title" value="{{ format_title }}" />
-            <button type="submit" class="btn btn-primary">Download</button>
+            <div class="flex" id="download-button-wrap">
+                {% include "downloads/download_button.html" with poll=poll|default:False %}
+            </div>
         </form>
     </div>
     <div class="card">
         <div class="flex items-center justify-between">
-            <h2 class="font-[var(--font-display)] text-lg font-semibold">Download status</h2>
+            <h2 class="text-lg font-semibold">Download status</h2>
             <span class="text-xs text-slate-500">Step 4</span>
         </div>
-        <div class="mt-4 grid gap-4" id="progress-status">{% include 'downloads/progress_status.html' %}</div>
+        <div class="mt-4 grid gap-4" id="progress-status">{% include "downloads/progress_status.html" %}</div>
     </div>
 </div>
-

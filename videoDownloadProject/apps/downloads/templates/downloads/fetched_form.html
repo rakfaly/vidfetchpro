@@ -1,4 +1,9 @@
 <!-- Fetched Video Card-->
+{% if oob_fetch_button %}
+    <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
+        {% include "downloads/fetch_button.html" with task_status="SUCCESS" %}
+    </div>
+{% endif %}
 {% for entry in fetched_data %}
     <div class="card video-metadata-card">
         <div class="flex items-center justify-between">
@@ -31,4 +36,3 @@
     </div>
 {% endfor %}
 {% include "downloads/formats_form.html" %}
-

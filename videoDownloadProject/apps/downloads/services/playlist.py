@@ -87,7 +87,7 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         if (
             (format.get("filesize") is not None)
             and (format.get("filesize") >= 5000)
-            and (format.get("ext") in ("mp4"))
+            # and (format.get("ext") in ("mp4"))
         ):
             if (format.get("height") is not None) and (format.get("height") >= 480):
                 formats.append(format)

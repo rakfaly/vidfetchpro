@@ -14,7 +14,6 @@ from apps.downloads.services.playlist import (
 )
 from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
 from apps.history.models import History
-from apps.users.models import UserProfile
 from utils import utils
 
 
@@ -45,6 +44,25 @@ class DownloadView(ListView):
             )
         else:
             context["history_list"] = []
+        context["restore_fetched"] = False
+
+        task_id = self.request.session.get("fetch_task_id")
+        should_restore_fetched = bool(
+            self.request.session.get("restore_fetched_session", False)
+        )
+        if task_id and should_restore_fetched:
+            result = AsyncResult(task_id)
+            if result.successful():
+                entries, formats = build_playlist_preview(result.result)
+                allowed_format_ids, default_format_id = _resolve_allowed_formats(
+                    self.request.user, formats
+                )
+                context["fetched_data"] = entries
+                context["formats"] = formats
+                context["allowed_format_ids"] = allowed_format_ids
+                context["default_format_id"] = default_format_id
+                context["restore_fetched"] = True
+
         return context
 
 
@@ -70,6 +88,26 @@ def _get_download_policy(user) -> DownloadPolicy:
     )
 
 
+def _resolve_allowed_formats(user, formats):
+    """Compute allowed format IDs and default format based on user policy."""
+    policy = _get_download_policy(user)
+    max_resolution = policy.max_resolution
+    is_unlimited = policy.is_unlimited
+    allowed_format_ids = []
+    for fmt in formats:
+        fmt_id = str(fmt.get("format_id")) if fmt.get("format_id") is not None else None
+        height = fmt.get("height")
+        if not fmt_id:
+            continue
+        if is_unlimited:
+            allowed_format_ids.append(fmt_id)
+            continue
+        if height is None or (max_resolution is None) or (height <= max_resolution):
+            allowed_format_ids.append(fmt_id)
+    default_format_id = allowed_format_ids[0] if allowed_format_ids else None
+    return allowed_format_ids, default_format_id
+
+
 def fetch_metadata(request):
     """
     Kick off metadata extraction for a submitted video URL.
@@ -92,10 +130,15 @@ def fetch_metadata(request):
         info = enqueue_fetch_data(video_url)
         # Store the tasks result in the session
         request.session["fetch_task_id"] = getattr(info, "id", None)
+        request.session["restore_fetched_session"] = False
 
         task_id = request.session.get("fetch_task_id")
         result = AsyncResult(task_id)
-        return render(request, "downloads/fetched_spinner.html", {"task": result})
+        return render(
+            request,
+            "downloads/fetched_spinner.html",
+            {"task": result, "oob_fetch_button": True},
+        )
 
     return redirect("apps.downloads:index")
 
@@ -118,31 +161,10 @@ def fetch_status(request):
 
         if result.successful():
             entries, formats = build_playlist_preview(result.result)
-            policy = _get_download_policy(request.user)
-            max_resolution = policy.max_resolution
-            is_unlimited = policy.is_unlimited
-            allowed_format_ids = []
-            for fmt in formats:
-                fmt_id = (
-                    str(fmt.get("format_id"))
-                    if fmt.get("format_id") is not None
-                    else None
-                )
-                height = fmt.get("height")
-                if not fmt_id:
-                    continue
-                if is_unlimited:
-                    allowed_format_ids.append(fmt_id)
-                    continue
-                if (
-                    height is None
-                    or (max_resolution is None)
-                    or (height <= max_resolution)
-                ):
-                    allowed_format_ids.append(fmt_id)
-
-            default_format_id = allowed_format_ids[0] if allowed_format_ids else None
-            best_format = formats[0] if formats else None
+            allowed_format_ids, default_format_id = _resolve_allowed_formats(
+                request.user, formats
+            )
+            request.session["restore_fetched_session"] = True
 
             return render(
                 request,
@@ -150,20 +172,22 @@ def fetch_status(request):
                 {
                     "fetched_data": entries,
                     "formats": formats,
-                    "best_format": best_format,
                     "allowed_format_ids": allowed_format_ids,
                     "default_format_id": default_format_id,
+                    "oob_fetch_button": True,
                 },
             )
 
         if result.failed():
-            return HttpResponse(
-                '<span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold '
-                'text-red-700 dark:bg-red-500/20 dark:text-emerald-300">'
-                "Failed to fetch metadata"
-                "</span>"
+            request.session["restore_fetched_session"] = False
+            return render(
+                request, "downloads/fetched_failed.html", {"oob_fetch_button": True}
             )
-        return render(request, "downloads/fetched_spinner.html", {"task": result})
+        return render(
+            request,
+            "downloads/fetched_spinner.html",
+            {"task": result, "oob_fetch_button": True},
+        )
     return HttpResponse("")
 
 
@@ -196,9 +220,10 @@ def prepare_download(request):
 
     if _entries[0]:
         fmt_title = f"""{_entries[0].get("title", "Untitle")}.{fmt.get('ext', '')}
-       ({' ' if fmt.get('height') else ''}{fmt.get('height', '')}p)""".strip()
+       """.strip()
     else:
         fmt_title = ""
+
     return render(
         request,
         "downloads/prepare_download.html",

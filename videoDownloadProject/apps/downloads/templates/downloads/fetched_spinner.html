@@ -1,11 +1,16 @@
 <!-- Spinner -->
+{% if oob_fetch_button %}
+    <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
+        {% include "downloads/fetch_button.html" with task_status="PENDING" %}
+    </div>
+{% endif %}
 <div id="fetch-spinner"
      class="card"
      hx-get="{% url 'apps.downloads:fetch_status' %}"
      hx-target="#fetched-metadata"
      hx-trigger="every 2s">
     <div class="flex items-center justify-between">
-        <h2 class="font-[var(--font-display)] text-lg font-semibold">Fetching metadata</h2>
+        <h2 class="text-lg font-semibold">Fetching metadata</h2>
         <span class="text-xs text-slate-500">Please wait</span>
     </div>
     <div class="mt-4 flex items-center gap-3 text-sm text-slate-500">
