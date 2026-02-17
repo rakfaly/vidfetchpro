@@ -7,8 +7,8 @@ from celery.result import AsyncResult
 from django.db import transaction
 
 from apps.downloads.models import DownloadJob
-from apps.history.models import History
 from apps.downloads.services.video_download import VideoDownload
+from apps.history.models import History
 
 
 @shared_task(
@@ -22,6 +22,7 @@ def run_download_job(self, job_id: str) -> None:
     """Execute a download job by id inside a Celery worker."""
 
     job = DownloadJob.objects.select_related("video", "format", "user").get(id=job_id)
+    success = False
     try:
         VideoDownload(job).download()
         success = True
@@ -33,7 +34,9 @@ def run_download_job(self, job_id: str) -> None:
         History.objects.create(job=job, success=success)
 
 
-def enqueue_download_job(job_id: str, *, use_on_commit: bool = True) -> Optional[AsyncResult]:
+def enqueue_download_job(
+    job_id: str, *, use_on_commit: bool = True
+) -> Optional[AsyncResult]:
     """Enqueue the download task; optionally wait for the DB transaction to commit."""
     if use_on_commit:
         transaction.on_commit(lambda: run_download_job.delay(job_id))

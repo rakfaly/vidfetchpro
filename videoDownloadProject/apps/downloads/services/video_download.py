@@ -9,8 +9,7 @@ from django.utils.text import slugify
 
 from apps.downloads.models import DownloadJob
 from apps.downloads.services.exceptions import DownloadFailed
-from apps.downloads.services.validators import ensure_format_allowed
-from apps.downloads.services.validators import validate_url
+from apps.downloads.services.validators import ensure_format_allowed, validate_url
 
 
 class VideoDownload:
@@ -27,7 +26,9 @@ class VideoDownload:
     def _build_output_dir(self) -> str:
         """Ensure the download output directory exists and return it."""
 
-        base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None) # or os.path.join(settings.MEDIA_ROOT, "downloads")
+        base_dir = getattr(
+            settings, "VIDEO_DOWNLOAD_ROOT", None
+        )  # or os.path.join(settings.MEDIA_ROOT, "downloads")
         os.makedirs(base_dir, exist_ok=True)
         return base_dir
 
@@ -37,7 +38,7 @@ class VideoDownload:
         base_title = self.video.title or "video"
         slug = slugify(base_title) or "video"
         slug = slug[:80]
-        #return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
+        # return f"{slug}-{self.video.id}-{int(time.time())}.%(ext)s"
         return f"{slug}-{int(time.time())}.%(ext)s"
 
     def _progress_hook(self, data: Dict[str, Any]) -> None:
@@ -60,22 +61,31 @@ class VideoDownload:
             self.job.eta_seconds = int(eta) if eta is not None else None
             self.job.status = "downloading"
             self.job.started_at = self.job.started_at or timezone.now()
-            self.job.save(update_fields=[
-                "progress_percent",
-                "bytes_downloaded",
-                "bytes_total",
-                "speed_kbps",
-                "eta_seconds",
-                "status",
-                "started_at",
-                "updated_at",
-            ])
+            self.job.save(
+                update_fields=[
+                    "progress_percent",
+                    "bytes_downloaded",
+                    "bytes_total",
+                    "speed_kbps",
+                    "eta_seconds",
+                    "status",
+                    "started_at",
+                    "updated_at",
+                ]
+            )
 
         if data.get("status") == "finished":
             self.job.progress_percent = 100
             self.job.status = "completed"
             self.job.completed_at = timezone.now()
-            self.job.save(update_fields=["progress_percent", "status", "completed_at", "updated_at"])
+            self.job.save(
+                update_fields=[
+                    "progress_percent",
+                    "status",
+                    "completed_at",
+                    "updated_at",
+                ]
+            )
 
     def download(self) -> None:
         """Run the download and persist final metadata to the job."""
@@ -129,4 +139,11 @@ class VideoDownload:
             self.job.output_filename = os.path.basename(ydl.prepare_filename(result))
             self.job.status = "completed"
             self.job.completed_at = timezone.now()
-            self.job.save(update_fields=["output_filename", "status", "completed_at", "updated_at"])
+            self.job.save(
+                update_fields=[
+                    "output_filename",
+                    "status",
+                    "completed_at",
+                    "updated_at",
+                ]
+            )

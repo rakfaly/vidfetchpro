@@ -18,7 +18,10 @@
                     <li>Limited daily usage</li>
                     <li>Basic support</li>
                 </ul>
-                {% if not user.is_authenticated %}<button class="btn btn-ghost w-full">Get Started</button>{% endif %}
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'apps.users:create_account' %}"
+                       class="btn btn-ghost w-full">Get Started</a>
+                {% endif %}
             </div>
             <div class="card space-y-4 border border-brand-300/70 dark:border-brand-500/40">
                 <p class="text-xs uppercase tracking-wide text-brand-600">Pro</p>

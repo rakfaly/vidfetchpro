@@ -36,14 +36,6 @@ class DownloadView(ListView):
         context["user"] = user
         context["fetch_form"] = FetchMetadataForm()
 
-        if user.is_authenticated:
-            context["history_list"] = (
-                History.objects.select_related("job", "job__video", "job__format")
-                .filter(job__user=user)
-                .order_by("-created_at")[:4]
-            )
-        else:
-            context["history_list"] = []
         context["restore_fetched"] = False
 
         task_id = self.request.session.get("fetch_task_id")
@@ -64,6 +56,20 @@ class DownloadView(ListView):
                 context["restore_fetched"] = True
 
         return context
+
+
+def history(request):
+    user = request.user
+
+    if user.is_authenticated:
+        context = (
+            History.objects.select_related("job", "job__video", "job__format")
+            .filter(job__user=user)
+            .order_by("-created_at")[:4]
+        )
+        return render(request, "downloads/history.html", {"history_list": context})
+    else:
+        return render(request, "downloads/history.html", {"history_list": []})
 
 
 def _get_download_policy(user) -> DownloadPolicy:
@@ -337,20 +343,22 @@ def progress_status(request):
         elapsed = None
         if job.bytes_downloaded and job.bytes_total:
             elapsed = f"{utils.format_bytes(job.bytes_downloaded)}/{utils.format_bytes(job.bytes_total)}"
+
+        response = render(
+            request,
+            "downloads/progress_status.html",
+            {
+                "poll": poll,
+                "job_id": str(job.id),
+                "format_title": job.video.title if job.video else "",
+                "download_progress": job.progress_percent,
+                "download_status": job.status,
+                "download_eta": duration,
+                "download_speed": speed_kbps,
+                "download_elapsed": elapsed,
+            },
+        )
+        response["HX-TRIGGER"] = "refresh-history"
+        return response
     except Exception as e:
         return HttpResponse("<p>Error: %s</p>" % e)
-
-    return render(
-        request,
-        "downloads/progress_status.html",
-        {
-            "poll": poll,
-            "job_id": str(job.id),
-            "format_title": job.video.title if job.video else "",
-            "download_progress": job.progress_percent,
-            "download_status": job.status,
-            "download_eta": duration,
-            "download_speed": speed_kbps,
-            "download_elapsed": elapsed,
-        },
-    )

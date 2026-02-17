@@ -55,7 +55,11 @@
             </ol>
         </div>
         <div class="card" id="history-card">
-            {% include "downloads/history.html" %}
+            <div id="history-wrap"
+                 hx-get="{% url 'apps.downloads:history' %}"
+                 hx-target="#history-wrap"
+                 hx-swap="innerHTML"
+                 hx-trigger="load, refresh-history from:body">{% include "downloads/history.html" %}</div>
             <div class="flex items-center justify-end">
                 <span class="text-xs text-gray-400">
                     {% if history_list %}
@@ -65,4 +69,4 @@
             </div>
         </div>
     </aside>
-{% endblock %}
+{% endblock content %}

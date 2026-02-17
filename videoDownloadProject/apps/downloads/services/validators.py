@@ -53,9 +53,21 @@ def ensure_format_allowed(profile, video_format) -> None:
     if profile and profile.is_unlimited:
         return
 
-    if profile and profile.max_resolution and video_format.get("height"):
-        if video_format.get("height") > profile.max_resolution:
+    # `video_format` can be a Django model instance (VideoFormat) or a dict-like payload.
+    height = (
+        video_format.get("height")
+        if isinstance(video_format, dict)
+        else getattr(video_format, "height", None)
+    )
+    is_premium_only = (
+        video_format.get("is_premium_only", False)
+        if isinstance(video_format, dict)
+        else getattr(video_format, "is_premium_only", False)
+    )
+
+    if profile and profile.max_resolution and height:
+        if height > profile.max_resolution:
             raise FormatNotAllowed("Selected format is not allowed for your plan")
 
-    if video_format.is_premium_only:
+    if is_premium_only:
         raise FormatNotAllowed("Selected format is premium only")
