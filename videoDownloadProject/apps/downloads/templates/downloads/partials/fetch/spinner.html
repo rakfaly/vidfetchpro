@@ -1,7 +1,7 @@
 <!-- Spinner -->
 {% if oob_fetch_button %}
     <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
-        {% include "downloads/fetch_button.html" with task_status="PENDING" %}
+        {% include "downloads/partials/fetch/button.html" with task_status="PENDING" %}
     </div>
 {% endif %}
 <div id="fetch-spinner"

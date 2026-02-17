@@ -28,7 +28,7 @@
                 <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ fetch_form.video_url.label }}</label>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     {{ fetch_form.video_url }}
-                    <div id="fetch-button-wrap" class="flex">{% include "downloads/fetch_button.html" with task_status="" %}</div>
+                    <div id="fetch-button-wrap" class="flex">{% include "downloads/partials/fetch/button.html" with task_status="" %}</div>
                 </div>
                 {% if fetch_form.video_url.errors %}
                     <p class="text-xs text-rose-500">{{ fetch_form.video_url.errors|striptags }}</p>
@@ -37,7 +37,7 @@
         </div>
         <div id="fetched-metadata" class="space-y-6 justify-between gap-4">
             {% if restore_fetched %}
-                {% include "downloads/fetched_form.html" %}
+                {% include "downloads/partials/fetch/success.html" %}
             {% endif %}
         </div>
         <!-- Fetched formats -->
@@ -59,7 +59,9 @@
                  hx-get="{% url 'apps.downloads:history' %}"
                  hx-target="#history-wrap"
                  hx-swap="innerHTML"
-                 hx-trigger="load, refresh-history from:body">{% include "downloads/history.html" %}</div>
+                 hx-trigger="load, refresh-history from:body">
+                {% include "downloads/partials/history/list.html" %}
+            </div>
             <div class="flex items-center justify-end">
                 <span class="text-xs text-gray-400">
                     {% if history_list %}

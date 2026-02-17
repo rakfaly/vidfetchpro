@@ -21,7 +21,7 @@ class DownloadView(ListView):
     """Dashboard view for the download flow and recent job history."""
 
     model = DownloadJob
-    template_name = "downloads/index.html"
+    template_name = "downloads/pages/index.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -35,6 +35,14 @@ class DownloadView(ListView):
         user = self.request.user
         context["user"] = user
         context["fetch_form"] = FetchMetadataForm()
+        if user.is_authenticated:
+            context["history_list"] = (
+                History.objects.select_related("job", "job__video", "job__format")
+                .filter(job__user=user)
+                .order_by("-created_at")[:4]
+            )
+        else:
+            context["history_list"] = []
 
         context["restore_fetched"] = False
 
@@ -67,9 +75,9 @@ def history(request):
             .filter(job__user=user)
             .order_by("-created_at")[:4]
         )
-        return render(request, "downloads/history.html", {"history_list": context})
+        return render(request, "downloads/partials/history/list.html", {"history_list": context})
     else:
-        return render(request, "downloads/history.html", {"history_list": []})
+        return render(request, "downloads/partials/history/list.html", {"history_list": []})
 
 
 def _get_download_policy(user) -> DownloadPolicy:
@@ -142,7 +150,7 @@ def fetch_metadata(request):
         result = AsyncResult(task_id)
         return render(
             request,
-            "downloads/fetched_spinner.html",
+            "downloads/partials/fetch/spinner.html",
             {"task": result, "oob_fetch_button": True},
         )
 
@@ -174,7 +182,7 @@ def fetch_status(request):
 
             return render(
                 request,
-                "downloads/fetched_form.html",
+                "downloads/partials/fetch/success.html",
                 {
                     "fetched_data": entries,
                     "formats": formats,
@@ -187,11 +195,11 @@ def fetch_status(request):
         if result.failed():
             request.session["restore_fetched_session"] = False
             return render(
-                request, "downloads/fetched_failed.html", {"oob_fetch_button": True}
+                request, "downloads/partials/fetch/failed.html", {"oob_fetch_button": True}
             )
         return render(
             request,
-            "downloads/fetched_spinner.html",
+            "downloads/partials/fetch/spinner.html",
             {"task": result, "oob_fetch_button": True},
         )
     return HttpResponse("")
@@ -232,7 +240,7 @@ def prepare_download(request):
 
     return render(
         request,
-        "downloads/prepare_download.html",
+        "downloads/partials/download/prepare_section.html",
         {"format_id": fmt_id, "format_title": fmt_title, "format": fmt},
     )
 
@@ -286,7 +294,7 @@ def start_download(request):
         elapsed = f"{utils.format_bytes(job.bytes_downloaded)}/{utils.format_bytes(job.bytes_total)}"
     return render(
         request,
-        "downloads/prepare_download.html",
+        "downloads/partials/download/prepare_section.html",
         {
             "format_id": fmt_id,
             "format_title": request.POST.get("format_title"),
@@ -346,7 +354,7 @@ def progress_status(request):
 
         response = render(
             request,
-            "downloads/progress_status.html",
+            "downloads/partials/download/progress_status.html",
             {
                 "poll": poll,
                 "job_id": str(job.id),

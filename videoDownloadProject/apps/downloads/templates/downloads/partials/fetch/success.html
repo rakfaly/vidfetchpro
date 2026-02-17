@@ -1,7 +1,7 @@
 <!-- Fetched Video Card-->
 {% if oob_fetch_button %}
     <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
-        {% include "downloads/fetch_button.html" with task_status="SUCCESS" %}
+        {% include "downloads/partials/fetch/button.html" with task_status="SUCCESS" %}
     </div>
 {% endif %}
 {% for entry in fetched_data %}
@@ -35,4 +35,4 @@
         </div>
     </div>
 {% endfor %}
-{% include "downloads/formats_form.html" %}
+{% include "downloads/partials/fetch/formats_form.html" %}

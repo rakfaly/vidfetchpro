@@ -12,7 +12,7 @@
             <input type="hidden" name="format" value="{{ format_id }}" />
             <input type="hidden" name="format_title" value="{{ format_title }}" />
             <div class="flex" id="download-button-wrap">
-                {% include "downloads/download_button.html" with poll=poll|default:False %}
+                {% include "downloads/partials/download/button.html" with poll=poll|default:False %}
             </div>
         </form>
     </div>
@@ -21,6 +21,6 @@
             <h2 class="text-lg font-semibold">Download status</h2>
             <span class="text-xs text-slate-500">Step 4</span>
         </div>
-        <div class="mt-4 grid gap-4" id="progress-status">{% include "downloads/progress_status.html" %}</div>
+        <div class="mt-4 grid gap-4" id="progress-status">{% include "downloads/partials/download/progress_status.html" %}</div>
     </div>
 </div>

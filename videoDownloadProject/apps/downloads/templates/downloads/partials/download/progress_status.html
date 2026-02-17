@@ -1,6 +1,9 @@
 <div id="download-button-wrap" class="flex" hx-swap-oob="outerHTML">
-    {% include "downloads/download_button.html" with poll=poll|default:False %}
+    {% include "downloads/partials/download/button.html" with poll=poll|default:False %}
 </div>
+{% if not poll %}
+    <div hx-on::load="document.body.dispatchEvent(new Event('refresh-history'))"></div>
+{% endif %}
 <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
      {% if poll %} hx-get="{% url 'apps.downloads:progress_status' %}" hx-trigger="every 1s" hx-swap="outerHTML" {% endif %}>
     <div class="flex items-center justify-between text-sm font-semibold">

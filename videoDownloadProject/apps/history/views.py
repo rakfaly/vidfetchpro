@@ -22,4 +22,4 @@ def clear_history(request):
         return render(request, "history/history.html")
     if len(History.objects.all()) > 0:
         History.objects.all().delete()
-    return render(request, "downloads/history.html")
+    return render(request, "downloads/partials/history/list.html")
