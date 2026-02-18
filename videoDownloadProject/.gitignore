@@ -1,0 +1,19 @@
+# Local editor metadata
+.idea/
+.zed/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Local secrets and databases
+.env
+db.sqlite3
+db.sqlite3-journal
+
+# Project-local generated/media files
+media/
+
+# Internal scripts not meant for repository distribution
+apps/downloads/scripts/
