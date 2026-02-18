@@ -3,6 +3,13 @@
     VidFetch Pro — Dashboard
 {% endblock title %}
 {% block content %}
+    {% if show_create_account_success_toast %}
+        <div class="hidden"
+             hx-get="{% url 'apps.users:create_account_success_toast' %}"
+             hx-trigger="load"
+             hx-target="#global-toast-root"
+             hx-swap="innerHTML transition:true"></div>
+    {% endif %}
     <section class="space-y-6">
         <div class="card">
             <div class="flex flex-wrap items-center justify-between gap-4">

@@ -21,6 +21,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from apps.downloads.views import DownloadView
+from apps.users.views import AccountUpdateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -50,7 +51,10 @@ urlpatterns = [
     ),
     path(
         "profile/",
-        TemplateView.as_view(template_name="users/profile.html"),
+        AccountUpdateView.as_view(
+            template_name="users/profile.html",
+            success_url="/profile/",
+        ),
         name="profile",
     ),
 ]

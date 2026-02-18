@@ -1,12 +1,20 @@
-"""Views for user authentication and account-related HTMX interactions."""
-
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_http_methods
+from django.views.generic import UpdateView
 
-from .forms import CustomUserCreationForm, LoginForm
+from .forms import (
+    CustomPasswordChangeForm,
+    CustomUserCreationForm,
+    CustomUserUpdateForm,
+    LoginForm,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -59,9 +67,67 @@ def create_account(request):
         if is_checked and form.is_valid():
             user = form.save()
             login(request, user)
+            request.session["show_create_account_success_toast"] = True
+            if request.htmx:
+                response = HttpResponse("")
+                response["HX-Redirect"] = reverse("apps.downloads:index")
+                return response
             return redirect("apps.downloads:index")
 
     return render(request, "users/create_account.html", {"form": form})
+
+
+@require_http_methods(["GET"])
+def create_account_success_toast(request):
+    if not request.htmx:
+        return HttpResponse("")
+    return render(request, "users/partials/create_account_success.html")
+
+
+@require_http_methods(["GET"])
+def close_create_account_success_toast(request):
+    if not request.htmx:
+        return HttpResponse("")
+    return HttpResponse("")
+
+
+class AccountUpdateView(LoginRequiredMixin, UpdateView):
+    form_class = CustomUserUpdateForm
+    template_name = "users/update_account.html"
+    success_url = reverse_lazy("profile")
+    login_url = reverse_lazy("apps.downloads:index")
+
+    def get_object(self, queryset: QuerySet | None = None):
+        return self.request.user
+
+
+@login_required(login_url=reverse_lazy("apps.downloads:index"))
+@require_http_methods(["GET", "POST"])
+def change_password(request):
+    form = CustomPasswordChangeForm(user=request.user, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        if request.htmx:
+            return render(request, "users/partials/change_password_success.html")
+        messages.success(request, "Password updated successfully.")
+        return redirect("profile")
+
+    template_name = (
+        "users/partials/change_password_panel.html"
+        if request.htmx
+        else "users/change_password.html"
+    )
+    return render(request, template_name, {"form": form})
+
+
+@login_required(login_url=reverse_lazy("apps.downloads:index"))
+@require_http_methods(["GET"])
+def close_change_password_panel(request):
+    if not request.htmx:
+        return redirect("profile")
+    return HttpResponse("")
 
 
 @require_http_methods(["POST"])
@@ -69,10 +135,10 @@ def logout_user(request):
     """Log out the current user and return an HTMX-friendly response."""
     logout(request)
     if not request.htmx:
-        return HttpResponse("")
+        return redirect("apps.downloads:index")
 
     # Create an empty div
     response = HttpResponse('<div id="accountMenuRoot"></div>')
-    # Refresh at the same page
-    response["HX-Redirect"] = request.headers.get("HX-Current-URL", "/")
+    # Redirect to a public route after logout.
+    response["HX-Redirect"] = reverse("apps.downloads:index")
     return response

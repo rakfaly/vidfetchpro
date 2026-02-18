@@ -78,6 +78,8 @@
             <div id="pageBody" class="relative">
                 <div id="loginModalRoot"></div>
                 <div id="accountMenuRoot"></div>
+                <div id="global-toast-root"
+                     class="pointer-events-none fixed inset-x-0 top-[calc(var(--nav-height)+0.75rem)] z-50 mx-auto w-full max-w-3xl px-6"></div>
                 <main class="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
                     {% block content %}
                     {% endblock content %}

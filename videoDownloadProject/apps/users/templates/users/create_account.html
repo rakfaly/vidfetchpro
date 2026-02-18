@@ -4,82 +4,113 @@
 {% endblock title %}
 {% block content %}
     <section class="space-y-6" id="create-account">
-        <div class="card">
-            <h1 class="font-[var(--font-display)] text-2xl font-semibold">Create Account</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-                Join VidFetch Pro to unlock higher quality formats and download history.
+        <div class="card relative overflow-hidden">
+            <div class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-brand-500 via-emerald-400 to-brand-700"></div>
+            <h1 class="text-2xl font-semibold">Create Account</h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Join VidFetch Pro to unlock higher quality formats, faster queueing, and download history.
             </p>
         </div>
         <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div class="card space-y-4">
-                <div class="space-y-1">
-                    <p class="text-xs uppercase tracking-wide text-slate-500">Welcome</p>
-                    <p class="text-xl font-semibold text-slate-900 dark:text-white">Build your workspace</p>
+            <div class="card space-y-6">
+                <div class="space-y-2">
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Account Setup</p>
+                    <p class="text-xl font-semibold text-slate-900 dark:text-white">Create your workspace</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Fill in your details to get started.</p>
                 </div>
-                <form class="space-y-4"
+                <form class="space-y-5"
                       method="post"
                       action="{% url 'apps.users:create_account' %}">
                     {% csrf_token %}
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">First name</label>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                First name
+                            </label>
                             {{ form.first_name }}
-                            <span class="text-left text-red-500 text-sm mt-8">{{ form.first_name.errors }}</span>
+                            {% if form.first_name.errors %}
+                                <p class="mt-1.5 text-xs text-rose-500">{{ form.first_name.errors|striptags }}</p>
+                            {% endif %}
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Last name</label>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                Last name
+                            </label>
                             {{ form.last_name }}
-                            <span class="text-left text-red-500 text-sm mt-8">{{ form.last_name.errors }}</span>
+                            {% if form.last_name.errors %}
+                                <p class="mt-1.5 text-xs text-rose-500">{{ form.last_name.errors|striptags }}</p>
+                            {% endif %}
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Username</label>
+                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                            Username
+                        </label>
                         {{ form.username }}
-                        <span class="text-left text-red-500 text-sm mt-8">{{ form.username.errors }}</span>
+                        {% if form.username.errors %}
+                            <p class="mt-1.5 text-xs text-rose-500">{{ form.username.errors|striptags }}</p>
+                        {% endif %}
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Email</label>
+                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                            Email
+                        </label>
                         {{ form.email }}
-                        <span class="text-left text-red-500 text-sm mt-8">{{ form.email.errors }}</span>
+                        {% if form.email.errors %}<p class="mt-1.5 text-xs text-rose-500">{{ form.email.errors|striptags }}</p>{% endif %}
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Password</label>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                Password
+                            </label>
                             {{ form.password1 }}
-                            <span class="text-left text-red-500 text-sm mt-8">{{ form.password1.errors }}</span>
+                            {% if form.password1.errors %}
+                                <p class="mt-1.5 text-xs text-rose-500">{{ form.password1.errors|striptags }}</p>
+                            {% endif %}
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Confirm password</label>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                Confirm password
+                            </label>
                             {{ form.password2 }}
-                            <span class="text-left text-red-500 text-sm mt-8">{{ form.password2.errors }}</span>
+                            {% if form.password2.errors %}
+                                <p class="mt-1.5 text-xs text-rose-500">{{ form.password2.errors|striptags }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    <label class="flex items-start gap-3 text-xs text-slate-500 dark:text-slate-400">
-                        <input type="checkbox" class="mt-1" name="checkbox_policy_terms" />
+                    <label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400">
+                        <input type="checkbox"
+                               class="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+                               name="checkbox_policy_terms" />
                         <span>
                             I agree to the
                             <a href="{% url 'terms' %}" class="underline">Terms</a> and
                             <a href="{% url 'privacy' %}" class="underline">Privacy Policy</a>.
                         </span>
                     </label>
-                    <ul>
-                        {% for message in messages %}<li class="text-left text-red-500 text-sm mt-8">{{ message }}</li>{% endfor %}
-                    </ul>
-                    <button class="btn btn-primary w-full">Create account</button>
+                    {% if messages %}
+                        <div class="space-y-1">
+                            {% for message in messages %}<p class="text-sm text-rose-500">{{ message }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="flex items-center justify-between gap-3 pt-1">
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Already have an account?</p>
+                        <button class="btn btn-primary min-w-40" type="submit">Create account</button>
+                    </div>
                 </form>
             </div>
             <div class="card space-y-4">
-                <p class="text-xs uppercase tracking-wide text-slate-500">Why upgrade</p>
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Why upgrade</p>
                 <div class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                    <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                         <p class="font-semibold text-slate-900 dark:text-white">Higher quality formats</p>
                         <p>Access 4K options and lossless audio where available.</p>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                         <p class="font-semibold text-slate-900 dark:text-white">Download history</p>
                         <p>Track completed jobs and retry failed downloads.</p>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                         <p class="font-semibold text-slate-900 dark:text-white">Priority queue</p>
                         <p>Faster processing during peak hours.</p>
                     </div>

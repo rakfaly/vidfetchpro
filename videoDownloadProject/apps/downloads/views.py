@@ -33,18 +33,27 @@ class DownloadView(ListView):
         """
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        # Expose current user explicitly for template branches in base/index.
         context["user"] = user
+        # URL input form displayed at the top of the dashboard.
         context["fetch_form"] = FetchMetadataForm()
         if user.is_authenticated:
+            # Sidebar "recent history" preview (max 4) for the logged-in user.
             context["history_list"] = (
                 History.objects.select_related("job", "job__video", "job__format")
                 .filter(job__user=user)
                 .order_by("-created_at")[:4]
             )
         else:
+            # Anonymous users have no persisted history list.
             context["history_list"] = []
 
+        # Controls whether fetched metadata/formats are re-rendered on page load.
         context["restore_fetched"] = False
+        # One-shot flag used by index template to trigger signup success toast via HTMX.
+        context["show_create_account_success_toast"] = bool(
+            self.request.session.pop("show_create_account_success_toast", False)
+        )
 
         task_id = self.request.session.get("fetch_task_id")
         should_restore_fetched = bool(
@@ -57,6 +66,7 @@ class DownloadView(ListView):
                 allowed_format_ids, default_format_id = _resolve_allowed_formats(
                     self.request.user, formats
                 )
+                # Inputs for fetched-form partial so user can continue without refetching.
                 context["fetched_data"] = entries
                 context["formats"] = formats
                 context["allowed_format_ids"] = allowed_format_ids

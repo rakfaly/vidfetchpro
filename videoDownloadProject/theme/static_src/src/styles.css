@@ -78,8 +78,25 @@
     @apply bg-white/80 backdrop-blur dark:bg-slate-950/80;
   }
 
+  .profile-side-panel {
+    position: fixed;
+    top: calc(var(--nav-height) + 7rem);
+    right: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
+    z-index: 40;
+    width: min(30rem, 32vw);
+  }
+
+  [data-change-password-panel] {
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+
   .htmx-added {
     opacity: 0;
+  }
+
+  .htmx-added[data-change-password-panel] {
+    opacity: 0;
+    transform: translateX(14px);
   }
 
   .htmx-settling .htmx-added,
@@ -107,7 +124,4 @@ dialog.modal-backdrop:not([open]) {
 
 dialog.modal-backdrop[open] {
   display: flex;
-}
-
---nav-height {
 }
