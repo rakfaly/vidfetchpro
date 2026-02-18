@@ -51,9 +51,16 @@
                            class="hover:text-slate-900 dark:hover:text-white">Help</a>
                     </nav>
                     <div class="relative flex items-center gap-3">
-                        <button id="themeToggle" class="pill inline-flex items-center gap-2">
-                            <span class="theme-label">Dark</span>
-                            <span class="rounded-full bg-slate-900 px-2 py-1 text-[10px] uppercase tracking-wide text-white dark:bg-white dark:text-slate-900">Mode</span>
+                        <button id="themeToggle"
+                                class="pill inline-flex h-10 w-10 items-center justify-center p-0"
+                                aria-label="Toggle theme"
+                                title="Toggle theme">
+                            <img src="{% static 'images/theme-moon.svg' %}"
+                                 alt="Dark mode"
+                                 class="h-7 w-7 dark:hidden" />
+                            <img src="{% static 'images/theme-sun.svg' %}"
+                                 alt="Light mode"
+                                 class="hidden h-7 w-7 dark:block" />
                         </button>
                         {% if not user.is_authenticated %}
                             <button class="btn btn-ghost"
@@ -84,6 +91,7 @@
                     {% block content %}
                     {% endblock content %}
                 </main>
+                {% include "partials/faq_section.html" %}
                 <footer class="border-t border-slate-200/70 bg-white/70 py-8 text-xs text-slate-500 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-400">
                     <div class="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-[1.2fr_0.8fr]">
                         <div class="space-y-3">

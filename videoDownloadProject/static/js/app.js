@@ -5,11 +5,15 @@ const themeLabel = document.querySelector('.theme-label');
 const setTheme = (mode) => {
   if (mode === 'dark') {
     root.classList.add('dark');
-    themeLabel.textContent = 'Light';
+    if (themeLabel) {
+      themeLabel.textContent = 'Light';
+    }
     localStorage.setItem('theme', 'dark');
   } else {
     root.classList.remove('dark');
-    themeLabel.textContent = 'Dark';
+    if (themeLabel) {
+      themeLabel.textContent = 'Dark';
+    }
     localStorage.setItem('theme', 'light');
   }
 };

@@ -12,19 +12,22 @@
     {% endif %}
     <section class="space-y-6">
         <div class="card">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
+            <div class="grid gap-4">
+                <div class="w-full flex items-center justify-between">
                     <h1 class="text-2xl font-semibold">
                         Grab video, audio, and subtitles in one
                         flow
                     </h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">
-                        Paste a URL, validate it, pick a format, and
-                        download with live progress.
-                    </p>
+                    <span class="text-xs text-slate-500">Step 1</span>
                 </div>
-                <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Unlimited
-                for logged users</span>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Paste a URL, validate it, pick a format, and
+                    download with live progress.
+                </p>
+                <span class="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                    Unlimited
+                    for logged users
+                </span>
             </div>
             <!--Fetch Video Metadata -->
             <form method="post"

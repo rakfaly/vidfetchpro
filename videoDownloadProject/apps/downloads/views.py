@@ -7,8 +7,8 @@ from django.views.generic import ListView
 
 from apps.downloads.forms import FetchMetadataForm
 from apps.downloads.models import DownloadJob
-from apps.downloads.services.exceptions import FormatNotAllowed, RateLimitExceeded
 from apps.downloads.services.access import DownloadPolicy
+from apps.downloads.services.exceptions import FormatNotAllowed, RateLimitExceeded
 from apps.downloads.services.playlist import (
     build_playlist_preview,
     launch_playlist_downloads,
@@ -86,9 +86,13 @@ def history(request):
             .filter(job__user=user)
             .order_by("-created_at")[:4]
         )
-        return render(request, "downloads/partials/history/list.html", {"history_list": context})
+        return render(
+            request, "downloads/partials/history/list.html", {"history_list": context}
+        )
     else:
-        return render(request, "downloads/partials/history/list.html", {"history_list": []})
+        return render(
+            request, "downloads/partials/history/list.html", {"history_list": []}
+        )
 
 
 def _get_download_policy(user) -> DownloadPolicy:
@@ -206,7 +210,9 @@ def fetch_status(request):
         if result.failed():
             request.session["restore_fetched_session"] = False
             return render(
-                request, "downloads/partials/fetch/failed.html", {"oob_fetch_button": True}
+                request,
+                "downloads/partials/fetch/failed.html",
+                {"oob_fetch_button": True},
             )
         return render(
             request,
