@@ -14,8 +14,6 @@
               hx-post="{% url 'apps.downloads:start_download_spinner' %}"
               hx-target="#spinner-download-start"
               hx-swap="outerHTML">
-            <!-- hx-post="{% url 'apps.downloads:start_download' %}" -->
-            <!-- hx-target="#download-section" -->
             {% csrf_token %}
             <input type="hidden" name="format" value="{{ format_id }}" />
             <input type="hidden" name="format_title" value="{{ format_title }}" />
@@ -36,6 +34,7 @@
     <form class="relative flex items-center"
           action="{% url 'apps.downloads:refresh_formats' %}"
           methos="post">
+        {% csrf_token %}
         <button class="btn btn-ghost w-fit text-center" type="submit">
             <img src="{% static 'downloads/images/refresh.svg' %}"
                  class="w-7 h-7"

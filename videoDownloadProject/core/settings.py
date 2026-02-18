@@ -26,8 +26,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+def _parse_bool_env(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", True)
+DEBUG = _parse_bool_env("DEBUG", True)
 
 ALLOWED_HOSTS = []
 
@@ -150,3 +157,5 @@ if DEBUG:
 
 VIDEO_DOWNLOAD_ROOT = Path.home() / "Downloads"
 
+# Subscription provider integration
+SUBSCRIPTION_WEBHOOK_SECRET = os.environ.get("SUBSCRIPTION_WEBHOOK_SECRET", "")

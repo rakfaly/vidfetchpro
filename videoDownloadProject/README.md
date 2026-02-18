@@ -43,6 +43,26 @@ Worker:
 celery -A core worker -l info
 ```
 
+## Production Settings
+Use `core.settings_prod` in production and provide environment variables.
+
+Required:
+- `SECRET_KEY` (long random value, not Django default)
+- `ALLOWED_HOSTS` (comma-separated, e.g. `app.example.com,www.example.com`)
+- `CSRF_TRUSTED_ORIGINS` (comma-separated HTTPS origins, e.g. `https://app.example.com`)
+- `CELERY_BROKER_URL`
+- `CELERY_RESULT_BACKEND`
+- `SUBSCRIPTION_WEBHOOK_SECRET` (shared secret for provider event endpoint)
+
+Recommended:
+- `SECURE_PROXY_SSL_HEADER_NAME=HTTP_X_FORWARDED_PROTO`
+- `SECURE_PROXY_SSL_HEADER_VALUE=https`
+- `SECURE_SSL_REDIRECT=True`
+- `SESSION_COOKIE_SECURE=True`
+- `CSRF_COOKIE_SECURE=True`
+- `SECURE_HSTS_SECONDS=31536000`
+- `STATIC_ROOT=/path/to/staticfiles`
+
 ## Project Structure
 ```
 apps/

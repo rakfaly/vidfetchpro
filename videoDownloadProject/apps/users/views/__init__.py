@@ -10,6 +10,7 @@ from .subscription import (
     activate_pro_subscription,
     cancel_pro_subscription,
     pricing,
+    provider_subscription_event,
     pro_checkout,
     start_pro_checkout,
 )
@@ -27,6 +28,7 @@ __all__ = [
     "login_popover",
     "logout_user",
     "pricing",
+    "provider_subscription_event",
     "pro_checkout",
     "start_pro_checkout",
 ]

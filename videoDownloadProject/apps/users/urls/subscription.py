@@ -3,6 +3,7 @@ from django.urls import path
 from apps.users.views import (
     activate_pro_subscription,
     cancel_pro_subscription,
+    provider_subscription_event,
     pro_checkout,
     start_pro_checkout,
 )
@@ -23,5 +24,10 @@ urlpatterns = [
         "subscription/pro/cancel",
         cancel_pro_subscription,
         name="cancel_pro_subscription",
+    ),
+    path(
+        "subscription/provider/event",
+        provider_subscription_event,
+        name="provider_subscription_event",
     ),
 ]

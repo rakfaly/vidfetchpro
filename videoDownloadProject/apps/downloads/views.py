@@ -1,6 +1,9 @@
+import uuid
+
 from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
@@ -16,6 +19,8 @@ from apps.downloads.services.playlist import (
 from apps.downloads.tasks.fetch_metadata_tasks import enqueue_fetch_data
 from apps.history.models import History
 from utils import utils
+
+GUEST_USER_SESSION_KEY = "guest_user_id"
 
 
 class DownloadView(ListView):
@@ -95,6 +100,55 @@ def history(request):
         )
 
 
+def _get_or_create_session_guest_user(request):
+    """Return a per-session guest user instead of a global shared anonymous account."""
+    user_model = get_user_model()
+    guest_user_id = request.session.get(GUEST_USER_SESSION_KEY)
+    if guest_user_id:
+        existing_user = user_model.objects.filter(id=guest_user_id).first()
+        if existing_user:
+            return existing_user
+
+    while True:
+        username = f"guest-{uuid.uuid4().hex[:12]}"
+        if not user_model.objects.filter(username=username).exists():
+            guest_user = user_model.objects.create(username=username)
+            guest_user.set_unusable_password()
+            guest_user.save(update_fields=["password"])
+            request.session[GUEST_USER_SESSION_KEY] = guest_user.id
+            return guest_user
+
+
+def _get_request_actor_key(request) -> str:
+    """Return a stable key for rate-limiting (auth user or anonymous session/ip)."""
+    if request.user.is_authenticated:
+        return f"user:{request.user.id}"
+
+    if not request.session.session_key:
+        request.session.save()
+    session_key = request.session.session_key or "no-session"
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ip = forwarded_for.split(",")[0].strip() if forwarded_for else request.META.get(
+        "REMOTE_ADDR", "unknown-ip"
+    )
+    return f"anon:{session_key}:{ip}"
+
+
+def _is_rate_limited(
+    request, scope: str, *, limit: int, window_seconds: int
+) -> bool:
+    """Return True if the request exceeds configured rate limit for the scope."""
+    key = f"downloads:ratelimit:{scope}:{_get_request_actor_key(request)}"
+    if cache.add(key, 1, timeout=window_seconds):
+        return False
+    try:
+        current = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=window_seconds)
+        return False
+    return current > limit
+
+
 def _get_download_policy(user) -> DownloadPolicy:
     """Return the effective download policy for an authenticated or anonymous user."""
     if user and getattr(user, "is_authenticated", False):
@@ -155,6 +209,23 @@ def fetch_metadata(request):
         return redirect("apps.downloads:index")
 
     if request.htmx:
+        if _is_rate_limited(
+            request,
+            "fetch_metadata",
+            limit=int(getattr(settings, "VIDEO_FETCH_RATE_LIMIT", 15)),
+            window_seconds=int(
+                getattr(settings, "VIDEO_FETCH_RATE_WINDOW_SECONDS", 60)
+            ),
+        ):
+            return render(
+                request,
+                "downloads/partials/fetch/failed.html",
+                {
+                    "oob_fetch_button": True,
+                    "fetch_error": "Too many fetch requests. Please wait a moment and retry.",
+                },
+            )
+
         video_url = form.cleaned_data["video_url"]
         info = enqueue_fetch_data(video_url)
         # Store the tasks result in the session
@@ -287,6 +358,25 @@ def start_download(request):
     fmt_id = request.POST.get("format", 0)
     if not fmt_id:
         return HttpResponse("No format selected")
+
+    if _is_rate_limited(
+        request,
+        "start_download",
+        limit=int(getattr(settings, "VIDEO_START_RATE_LIMIT", 10)),
+        window_seconds=int(getattr(settings, "VIDEO_START_RATE_WINDOW_SECONDS", 60)),
+    ):
+        return render(
+            request,
+            "downloads/partials/download/prepare_section.html",
+            {
+                "format_id": fmt_id,
+                "format_title": request.POST.get("format_title"),
+                "download_started": False,
+                "download_error": "Too many download requests. Please wait and try again.",
+                "poll": False,
+            },
+        )
+
     task_id = request.session.get("fetch_task_id")
     if not task_id:
         return HttpResponse("No task ID")
@@ -297,10 +387,7 @@ def start_download(request):
 
     user = request.user
     if not user.is_authenticated:
-        user_model = get_user_model()
-        user, _ = user_model.objects.get_or_create(
-            username="anonymous-user", defaults={"password": "anonymous-pass"}
-        )
+        user = _get_or_create_session_guest_user(request)
 
     try:
         jobs = launch_playlist_downloads(user, result.result, fmt_id)
