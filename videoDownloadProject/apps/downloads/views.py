@@ -209,6 +209,16 @@ def fetch_status(request):
 
         if result.failed():
             request.session["restore_fetched_session"] = False
+            request.session["fetch_task_id"] = None
+            return render(
+                request,
+                "downloads/partials/fetch/failed.html",
+                {"oob_fetch_button": True},
+            )
+
+        if result.ready():
+            request.session["restore_fetched_session"] = False
+            request.session["fetch_task_id"] = None
             return render(
                 request,
                 "downloads/partials/fetch/failed.html",
@@ -401,3 +411,24 @@ def progress_status(request):
         return response
     except Exception as e:
         return HttpResponse("<p>Error: %s</p>" % e)
+
+
+def start_download_spinner(request):
+    if request.method != "POST" or not request.htmx:
+        return HttpResponse("")
+
+    fmt_id = request.POST.get("format")
+    if not fmt_id:
+        return HttpResponse("No format selected")
+
+    fmt_title = request.POST.get("format_title", "")
+    return render(
+        request,
+        "downloads/partials/download/spinner.html",
+        {"format_id": fmt_id, "format_title": fmt_title},
+    )
+
+
+def refresh_formats(request):
+    request.session.pop("restore_fetched_session")
+    return redirect("apps.downloads:index")

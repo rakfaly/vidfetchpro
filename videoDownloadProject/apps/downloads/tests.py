@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.downloads.models import DailyDownloadUsage, DownloadJob
@@ -130,6 +131,60 @@ class DownloadConstraintsTests(TestCase):
 
         with self.assertRaises(RateLimitExceeded):
             enforce_download_constraints(self.user, self.format)
+
+
+class FetchStatusPollingTests(TestCase):
+    """Tests for HTMX polling behavior during retry and final failure states."""
+
+    def setUp(self) -> None:
+        self.url = reverse("apps.downloads:fetch_status")
+
+    def _set_fetch_task_id(self, task_id: str) -> None:
+        session = self.client.session
+        session["fetch_task_id"] = task_id
+        session.save()
+
+    def test_fetch_status_keeps_spinner_while_task_is_retrying(self) -> None:
+        self._set_fetch_task_id("retry-task-id")
+
+        class RetryResult:
+            def successful(self) -> bool:
+                return False
+
+            def failed(self) -> bool:
+                return False
+
+            def ready(self) -> bool:
+                return False
+
+        with patch("apps.downloads.views.AsyncResult", return_value=RetryResult()):
+            response = self.client.get(self.url, HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "fetch-spinner")
+        self.assertContains(response, 'hx-trigger="every 2s"')
+        self.assertEqual(self.client.session.get("fetch_task_id"), "retry-task-id")
+
+    def test_fetch_status_stops_polling_on_final_failure(self) -> None:
+        self._set_fetch_task_id("final-failure-task-id")
+
+        class FailureResult:
+            def successful(self) -> bool:
+                return False
+
+            def failed(self) -> bool:
+                return True
+
+            def ready(self) -> bool:
+                return True
+
+        with patch("apps.downloads.views.AsyncResult", return_value=FailureResult()):
+            response = self.client.get(self.url, HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Failed to fetch metadata")
+        self.assertNotContains(response, "fetch-spinner")
+        self.assertIsNone(self.client.session.get("fetch_task_id"))
 
     def test_rate_limit_counts_in_flight_jobs(self) -> None:
         DownloadJob.objects.create(

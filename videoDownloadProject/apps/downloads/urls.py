@@ -16,4 +16,10 @@ urlpatterns = [
         views.progress_status,
         name="progress_status",
     ),
+    path(
+        "fetch/spinner-dummy",
+        views.start_download_spinner,
+        name="start_download_spinner",
+    ),
+    path("fetch/refresh-formats", views.refresh_formats, name="refresh_formats"),
 ]
