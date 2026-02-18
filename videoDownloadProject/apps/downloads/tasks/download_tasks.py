@@ -7,6 +7,7 @@ from celery.result import AsyncResult
 from django.db import transaction
 
 from apps.downloads.models import DownloadJob
+from apps.downloads.services.access import increment_daily_success_usage
 from apps.downloads.services.video_download import VideoDownload
 from apps.history.models import History
 
@@ -32,6 +33,8 @@ def run_download_job(self, job_id: str) -> None:
     finally:
         job.refresh_from_db()
         History.objects.create(job=job, success=success)
+        if success:
+            increment_daily_success_usage(job.user)
 
 
 def enqueue_download_job(

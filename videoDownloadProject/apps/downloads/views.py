@@ -7,6 +7,7 @@ from django.views.generic import ListView
 
 from apps.downloads.forms import FetchMetadataForm
 from apps.downloads.models import DownloadJob
+from apps.downloads.services.exceptions import FormatNotAllowed, RateLimitExceeded
 from apps.downloads.services.access import DownloadPolicy
 from apps.downloads.services.playlist import (
     build_playlist_preview,
@@ -285,7 +286,21 @@ def start_download(request):
             username="anonymous-user", defaults={"password": "anonymous-pass"}
         )
 
-    jobs = launch_playlist_downloads(user, result.result, fmt_id)
+    try:
+        jobs = launch_playlist_downloads(user, result.result, fmt_id)
+    except (RateLimitExceeded, FormatNotAllowed) as exc:
+        return render(
+            request,
+            "downloads/partials/download/prepare_section.html",
+            {
+                "format_id": fmt_id,
+                "format_title": request.POST.get("format_title"),
+                "download_started": False,
+                "download_error": str(exc),
+                "poll": False,
+            },
+        )
+
     if not jobs:
         return HttpResponse("No jobs created (format_id mismatch or missing formats)")
     job_ids = [str(j.id) for j in jobs]

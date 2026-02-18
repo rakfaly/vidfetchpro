@@ -21,7 +21,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from apps.downloads.views import DownloadView
-from apps.users.views import AccountUpdateView
+from apps.users.views import AccountUpdateView, pricing
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -46,9 +46,7 @@ urlpatterns = [
     path(
         "formats/", TemplateView.as_view(template_name="formats.html"), name="formats"
     ),
-    path(
-        "pricing/", TemplateView.as_view(template_name="pricing.html"), name="pricing"
-    ),
+    path("pricing/", pricing, name="pricing"),
     path(
         "profile/",
         AccountUpdateView.as_view(

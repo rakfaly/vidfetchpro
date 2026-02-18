@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 
 from apps.downloads.models import DownloadJob
+from apps.downloads.services.access import enforce_download_constraints
 from apps.downloads.services.video_metadata import VideoMetadataFetcher
 from apps.downloads.tasks.download_tasks import enqueue_download_job
 from apps.videos.models import VideoFormat, VideoSource
@@ -183,7 +184,7 @@ def launch_playlist_downloads(user, info: dict, format_id: str) -> List[Download
             continue
 
         chosen_format = created_formats[0]
-        # enforce_download_constraints(user, chosen_format)
+        enforce_download_constraints(user, chosen_format)
 
         chosen_format.save()
         job = DownloadJob.objects.create(user=user, video=video, format=chosen_format)

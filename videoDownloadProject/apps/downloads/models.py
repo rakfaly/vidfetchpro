@@ -40,3 +40,26 @@ class DownloadJob(TimeStampedModel):
         """Return a readable label for admin and logs."""
 
         return f"{self.user} - {self.status}"
+
+
+class DailyDownloadUsage(TimeStampedModel):
+    """Tracks per-user successful download usage for a specific day."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="daily_download_usages",
+    )
+    day = models.DateField()
+    success_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "day"],
+                name="uniq_daily_download_usage_user_day",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} {self.day}: {self.success_count}"

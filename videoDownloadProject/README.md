@@ -15,6 +15,7 @@ Django app that lets users paste a video URL, fetch metadata, choose a format, a
 2. Choose a format (stores yt-dlp `format_id`)
 3. Start download
 4. Poll progress (percent, status, speed, ETA)
+5. Create account redirects to dashboard and shows an HTMX toast near navbar
 
 ## Progress Polling
 The UI polls `/downloads/fetch/start-download/progress-status` every second while any job is active. When all jobs finish, polling stops.
@@ -46,6 +47,19 @@ celery -A core worker -l info
 ```
 apps/
   downloads/
+  users/
+    forms/
+      auth.py
+      account.py
+      security.py
+    views/
+      auth.py
+      account.py
+      security.py
+    urls/
+      auth.py
+      account.py
+      security.py
   videos/
   history/
   common/

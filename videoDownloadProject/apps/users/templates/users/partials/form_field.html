@@ -1,0 +1,7 @@
+<div class="{{ wrapper_class|default:'' }}">
+    <label class="{{ label_class|default:'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300' }}">
+        {{ label|default:field.label }}
+    </label>
+    {{ field }}
+    {% include "users/partials/form_errors.html" with errors=field.errors error_class=error_class %}
+</div>

@@ -1,0 +1,12 @@
+<div class="card space-y-3">
+    <p class="text-xs uppercase tracking-wide text-slate-500">Subscription</p>
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                {{ request.user.profile.get_plan_tier_display|default:"Free" }} Plan
+            </p>
+            <p class="text-xs text-slate-500">Next renewal: —</p>
+        </div>
+        <a href="{% url 'pricing' %}" class="btn btn-ghost">Manage</a>
+    </div>
+</div>

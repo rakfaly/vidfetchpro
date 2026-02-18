@@ -44,7 +44,7 @@ A Django-based web app that lets users paste a video URL, fetch metadata, select
 - `apps/users`: `UserProfile` (plan tier, daily limit, max resolution, unlimited flag).
 - `apps/videos`: `VideoSource`, `VideoFormat` (includes `format_id`).
 - `apps/downloads`: `DownloadJob` (status + progress fields).
-- `apps/history`: `DownloadHistory` (final outcome).
+- `apps/history`: `History` (final outcome).
 - `apps/common`: shared base models (timestamps).
 
 ## Download Flow
@@ -93,6 +93,18 @@ A Django-based web app that lets users paste a video URL, fetch metadata, select
 ```
 apps/
   users/
+    forms/
+      auth.py
+      account.py
+      security.py
+    views/
+      auth.py
+      account.py
+      security.py
+    urls/
+      auth.py
+      account.py
+      security.py
   videos/
   downloads/
     services/
@@ -103,6 +115,10 @@ core/
   settings_dev.py
   settings_prod.py
 ```
+
+## UX Notes
+- Account creation redirects to dashboard and shows a short-lived HTMX toast near navbar.
+- Profile security uses HTMX panel for password changes on desktop and full page on mobile.
 
 ## Open Items (Future)
 - Switch to S3 (or other cloud storage).

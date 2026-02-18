@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}
+    Payment Process
+{% endblock title %}
+{% block content %}
+    <section class="space-y-6 lg:col-span-2">
+        <div class="card space-y-3">
+            <p class="text-xs uppercase tracking-[0.18em] text-brand-600 dark:text-brand-300">Payment</p>
+            <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Complete your {{ plan_name }} subscription</h1>
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+                This page is the checkout step. You can connect your payment provider API here later.
+            </p>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div class="card space-y-4">
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Checkout process</h2>
+                <ol class="space-y-3 text-sm text-slate-700 dark:text-slate-200">
+                    <li>1. Create checkout session with provider API (Stripe/PayPal/etc.).</li>
+                    <li>2. Redirect user to hosted payment page.</li>
+                    <li>3. On successful callback/webhook, activate Pro plan.</li>
+                </ol>
+                <div class="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+                    Temporary mode: click "Simulate successful payment" to test end-to-end behavior.
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'pricing' %}" class="btn btn-ghost">Back to pricing</a>
+                </div>
+            </div>
+            <aside class="card flex flex-col justify-between ">
+                <div class="space-y-3">
+                    <p class="text-xs uppercase tracking-wide text-slate-500">Order summary</p>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-600 dark:text-slate-300">{{ plan_name }} Plan</span>
+                        <span class="font-semibold text-slate-900 dark:text-white">{{ price_label }}</span>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-200/80 pt-3 text-sm dark:border-slate-700">
+                        <span class="text-slate-600 dark:text-slate-300">Total due now</span>
+                        <span class="font-semibold text-slate-900 dark:text-white">{{ price_label }}</span>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <form method="post"
+                          action="{% url 'apps.users:activate_pro_subscription' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Simulate successful payment</button>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </section>
+{% endblock content %}

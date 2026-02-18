@@ -1,0 +1,24 @@
+<div data-change-account-panel
+     class="card {% if update_success %}border-emerald-200 bg-emerald-50/70 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-100{% else %}border-amber-200 bg-amber-50/70 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100{% endif %}"
+     hx-get="{% url 'apps.users:update_account_success_toast' %}"
+     hx-trigger="load delay:1500ms"
+     hx-target="#update-account-panel-root"
+     hx-swap="innerHTML transition:true">
+    <div class="flex items-center gap-3">
+        <div class="flex h-8 w-8 items-center justify-center rounded-full {% if update_success %}bg-emerald-500{% else %}bg-amber-500{% endif %} text-white">
+            <i class="fa-solid {% if update_success %}fa-check{% else %}fa-circle-info{% endif %} text-xs"></i>
+        </div>
+        <div>
+            <p class="text-sm font-semibold">
+                {% if update_success %}
+                    Account updated
+                {% else %}
+                    No changes
+                {% endif %}
+            </p>
+            <p class="text-xs {% if update_success %}text-emerald-700 dark:text-emerald-300{% else %}text-amber-700 dark:text-amber-300{% endif %}">
+                {{ update_message|default:"Your profile account was saved successfully." }}
+            </p>
+        </div>
+    </div>
+</div>

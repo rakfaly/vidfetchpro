@@ -1,51 +1,115 @@
 {% extends 'base.html' %}
 {% block title %}Pricing{% endblock %}
 {% block content %}
-    <section class="space-y-6">
-        <div class="card">
-            <h1 class="text-2xl font-semibold">Pricing</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-                Transparent pricing, no surprises. Choose the plan that fits your workflow.
+    <section class="space-y-6 lg:col-span-2">
+        <div class="card space-y-3">
+            <p class="text-xs uppercase tracking-[0.18em] text-brand-600 dark:text-brand-300">Subscription</p>
+            <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Simple plans, clear limits</h1>
+            <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+                Upgrade instantly to Pro to unlock 4K downloads, higher limits, and priority queueing.
             </p>
+            {% if user.is_authenticated %}
+                <p class="inline-flex w-fit items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    Current plan: {{ current_plan|title }}
+                </p>
+            {% endif %}
         </div>
-        <div class="grid gap-6 lg:grid-cols-3">
-            <div class="card space-y-4">
+        {% if subscription_status == "pro_activated" %}
+            <div class="card border border-emerald-300/70 bg-emerald-50 text-sm text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                Pro subscription activated. Your new limits are now applied.
+            </div>
+        {% elif subscription_status == "already_pro" %}
+            <div class="card border border-slate-300/70 bg-slate-50 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+                Your account is already on Pro.
+            </div>
+        {% elif subscription_status == "pro_canceled" %}
+            <div class="card border border-amber-300/70 bg-amber-50 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-900/20 dark:text-amber-200">
+                Pro subscription canceled. Your account is back on Free plan.
+            </div>
+        {% elif subscription_status == "already_free" %}
+            <div class="card border border-slate-300/70 bg-slate-50 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+                Your account is already on Free plan.
+            </div>
+        {% endif %}
+        <div class="grid gap-6 xl:grid-cols-3">
+            <article class="card space-y-4">
                 <p class="text-xs uppercase tracking-wide text-slate-500">Free</p>
                 <p class="text-3xl font-semibold text-slate-900 dark:text-white">$0</p>
-                <p class="text-sm text-slate-600 dark:text-slate-300">For occasional downloads.</p>
-                <ul class="list-disc pl-5 text-sm text-slate-600 dark:text-slate-300">
-                    <li>Standard quality formats</li>
-                    <li>Limited daily usage</li>
-                    <li>Basic support</li>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Good for occasional downloads.</p>
+                <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                    <li>Up to 720p video quality</li>
+                    <li>Daily download limits</li>
+                    <li>Standard processing queue</li>
                 </ul>
-                {% if not user.is_authenticated %}
+                {% if user.is_authenticated and not is_pro %}
+                    <button class="btn btn-ghost w-full opacity-70 pointer-events-none" disabled>Current Plan</button>
+                {% elif not user.is_authenticated %}
                     <a href="{% url 'apps.users:create_account' %}"
-                       class="btn btn-ghost w-full">Get Started</a>
+                       class="btn btn-ghost w-full">Create Free Account</a>
                 {% endif %}
-            </div>
-            <div class="card space-y-4 border border-brand-300/70 dark:border-brand-500/40">
-                <p class="text-xs uppercase tracking-wide text-brand-600">Pro</p>
+            </article>
+            <article class="card space-y-4 border border-brand-300/70 bg-brand-50/40 dark:border-brand-500/40 dark:bg-brand-900/10">
+                <p class="text-xs uppercase tracking-wide text-brand-700 dark:text-brand-300">Pro</p>
                 <p class="text-3xl font-semibold text-slate-900 dark:text-white">
-                    $9<span class="text-base">/mo</span>
+                    $9<span class="text-base font-medium">/month</span>
                 </p>
-                <p class="text-sm text-slate-600 dark:text-slate-300">For creators and teams.</p>
-                <ul class="list-disc pl-5 text-sm text-slate-600 dark:text-slate-300">
-                    <li>High quality formats</li>
-                    <li>Faster queues</li>
-                    <li>Priority support</li>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Built for creators and frequent downloads.</p>
+                <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                    <li>Up to 4320p (8K) video quality</li>
+                    <li>Effectively unlimited usage</li>
+                    <li>Priority queue and support</li>
                 </ul>
-                <button class="btn btn-primary w-full">Start Pro</button>
-            </div>
-            <div class="card space-y-4">
+                {% if user.is_authenticated %}
+                    {% if is_pro %}
+                        <button class="btn btn-primary w-full opacity-70 pointer-events-none"
+                                disabled>Current Plan</button>
+                        <form method="post" action="{% url 'apps.users:cancel_pro_subscription' %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-ghost w-full border border-amber-300/70 text-amber-700 hover:bg-amber-50 dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-900/20">
+                                Cancel Pro
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'apps.users:start_pro_checkout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary w-full">Continue to Payment</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'apps.users:create_account' %}"
+                       class="btn btn-primary w-full">Create account to upgrade</a>
+                {% endif %}
+            </article>
+            <article class="card space-y-4">
                 <p class="text-xs uppercase tracking-wide text-slate-500">Enterprise</p>
                 <p class="text-3xl font-semibold text-slate-900 dark:text-white">Custom</p>
-                <p class="text-sm text-slate-600 dark:text-slate-300">For large-scale usage.</p>
-                <ul class="list-disc pl-5 text-sm text-slate-600 dark:text-slate-300">
-                    <li>Custom limits and policies</li>
-                    <li>Dedicated support</li>
-                    <li>Compliance options</li>
+                <p class="text-sm text-slate-600 dark:text-slate-300">For teams with governance and scale requirements.</p>
+                <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                    <li>Custom limits and compliance controls</li>
+                    <li>Dedicated onboarding and support</li>
+                    <li>Policy-based access configuration</li>
                 </ul>
                 <a class="btn btn-ghost w-full" href="mailto:falywork@gmail.com">Contact Sales</a>
+            </article>
+        </div>
+        <div class="card grid gap-4 md:grid-cols-3">
+            <div class="space-y-1">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Billing</p>
+                <p class="text-sm text-slate-700 dark:text-slate-200">No hidden fees. Cancel anytime.</p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Activation</p>
+                <p class="text-sm text-slate-700 dark:text-slate-200">Plan applies immediately after upgrade.</p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Need help?</p>
+                <p class="text-sm text-slate-700 dark:text-slate-200">
+                    Contact
+                    <a class="underline hover:text-slate-900 dark:hover:text-white"
+                       href="mailto:falywork@gmail.com">support</a>
+                    for account questions.
+                </p>
             </div>
         </div>
     </section>
