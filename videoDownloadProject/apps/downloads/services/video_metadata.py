@@ -49,12 +49,16 @@ class VideoMetadataFetcher:
                 # Some YouTube client profiles intermittently return audio-only sets.
                 # Retry with broader/default client options to recover video formats.
                 if "youtube.com" in url and not self._has_video_formats(info):
-                    fallback_opts = dict(ydl_opts)
-                    fallback_opts.pop("extractor_args", None)
-                    with YoutubeDL(fallback_opts) as fallback_ydl:
-                        fallback_info = fallback_ydl.extract_info(url, download=False)
-                        if self._has_video_formats(fallback_info):
-                            return fallback_info
+                    try:
+                        fallback_opts = dict(ydl_opts)
+                        fallback_opts.pop("extractor_args", None)
+                        with YoutubeDL(fallback_opts) as fallback_ydl:
+                            fallback_info = fallback_ydl.extract_info(url, download=False)
+                            if self._has_video_formats(fallback_info):
+                                return fallback_info
+                    except Exception:
+                        # Keep primary result instead of failing entire metadata fetch.
+                        pass
                 return info
         except Exception as exc:
             message = str(exc)
