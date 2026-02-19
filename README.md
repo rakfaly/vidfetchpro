@@ -21,23 +21,23 @@ Django app that lets users paste a video URL, fetch metadata, choose a format, a
 The UI polls `/downloads/fetch/start-download/progress-status` every second while any job is active. When all jobs finish, polling stops.
 
 ## Screenshots
-Place screenshots in `assets/screenshots/` with these names:
+Place screenshots in `videoDownloadProject/assets/screenshots/` with these names:
 - `home.png`
 - `admin-login.png`
 - `download-progress.png`
 - `history.png`
 
 ### Home
-![Home page](assets/screenshots/home.png)
+![Home page](videoDownloadProject/assets/screenshots/home.png)
 
 ### Admin Login
-![Django admin login](assets/screenshots/admin-login.png)
+![Django admin login](videoDownloadProject/assets/screenshots/admin-login.png)
 
 ### Download Progress
-![Live download progress](assets/screenshots/download-progress.png)
+![Live download progress](videoDownloadProject/assets/screenshots/download-progress.png)
 
 ### Download History
-![Download history](assets/screenshots/history.png)
+![Download history](videoDownloadProject/assets/screenshots/history.png)
 
 ## Development
 Prereqs:
