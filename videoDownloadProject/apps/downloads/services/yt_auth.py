@@ -34,7 +34,6 @@ def _materialize_cookie_file_from_env() -> str:
 
     if "youtube.com" not in decoded and ".youtube.com" not in decoded:
         logger.warning("Decoded cookies do not appear to contain youtube.com entries")
-        return ""
 
     _COOKIE_CACHE_PATH.write_text(decoded, encoding="utf-8")
     return str(_COOKIE_CACHE_PATH)

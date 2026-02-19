@@ -48,7 +48,7 @@ class VideoMetadataFetcher:
                 info = ydl.extract_info(url, download=False)
                 # Some YouTube client profiles intermittently return audio-only sets.
                 # Retry with broader/default client options to recover video formats.
-                if "youtube.com" in url and not self._has_video_formats(info):
+                if ("youtube.com" in url or "youtu.be" in url) and not self._has_video_formats(info):
                     try:
                         fallback_opts = dict(ydl_opts)
                         fallback_opts.pop("extractor_args", None)
