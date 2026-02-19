@@ -5,7 +5,7 @@ from apps.downloads.services.access import enforce_download_constraints
 from apps.downloads.services.video_metadata import VideoMetadataFetcher
 from apps.downloads.tasks.download_tasks import enqueue_download_job
 from apps.videos.models import VideoFormat, VideoSource
-from utils.utils import normalize_entry, unique_by_key_max
+from utils.utils import normalize_entry
 
 
 def _truncate(value: Any, max_len: int) -> str:
@@ -83,34 +83,36 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     Keeps MP4 formats >= 480p, and audio-only formats.
     De-duplicates by max filesize per height.
     """
-    formats: List[Dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    videos: List[Dict[str, Any]] = []
+    audios: List[Dict[str, Any]] = []
+
     for fmt in raw_formats:
-        format_id = fmt.get("format_id")
-        if format_id in (None, ""):
+        format_id = str(fmt.get("format_id") or "").strip()
+        if not format_id or format_id in seen_ids:
             continue
+        seen_ids.add(format_id)
 
-        height = fmt.get("height")
         vcodec = fmt.get("vcodec")
-        is_audio_only = vcodec in (None, "none")
-        is_video_target = (height is not None) and (height >= 480)
-        if not (is_video_target or is_audio_only):
+        acodec = fmt.get("acodec")
+        height = fmt.get("height")
+        is_audio_only = vcodec in (None, "none") and acodec not in (None, "none")
+        is_video = vcodec not in (None, "none")
+
+        if is_video:
+            # Keep all common video resolutions; high-res YouTube is often video-only (DASH).
+            if isinstance(height, int) and height >= 144:
+                videos.append(fmt)
             continue
 
-        # yt-dlp often omits exact filesize for YouTube; keep the format anyway.
-        if fmt.get("filesize") is None and fmt.get("filesize_approx") is not None:
-            fmt = dict(fmt)
-            fmt["filesize"] = fmt.get("filesize_approx")
-        formats.append(fmt)
+        if is_audio_only:
+            audios.append(fmt)
 
-    if not formats:
-        return []
+    videos.sort(key=lambda f: (f.get("height") or 0, 1 if f.get("ext") == "mp4" else 0), reverse=True)
+    audios.sort(key=lambda f: f.get("abr") or 0, reverse=True)
 
-    formats = unique_by_key_max(
-        formats,
-        key="height",
-        max_by="filesize",
-    )
-    return sorted(formats, key=lambda f: f.get("height") or 0, reverse=True)
+    # Limit list size for UI usability while keeping quality choices.
+    return videos[:30] + audios[:8]
 
 
 def fetch_data(playlist_url: str) -> List[Dict[str, Any]]:

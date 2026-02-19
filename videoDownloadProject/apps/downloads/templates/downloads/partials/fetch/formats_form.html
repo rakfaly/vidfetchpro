@@ -24,12 +24,14 @@
                                 High quality video + audio
                             {% elif fmt.height and fmt.height >= 480 %}
                                 Balanced size and quality
+                            {% elif fmt.vcodec != 'none' and fmt.acodec == 'none' %}
+                                Video only (audio will be merged automatically)
                             {% elif fmt.acodec != 'none' %}
                                 Audio only (fastest)
                             {% else %}
                                 Unknown format
                             {% endif %}
-                            {% if fmt.filesize %} ({{ fmt.filesize|filesizeformat }}){% endif %}
+                            {% if fmt.filesize %}({{ fmt.filesize|filesizeformat }}){% endif %}
                         </option>
                     </optgroup>
                 {% endfor %}
