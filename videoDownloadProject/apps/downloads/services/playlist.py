@@ -93,26 +93,43 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             continue
         seen_ids.add(format_id)
 
+        if fmt.get("ext") == "mhtml":
+            continue
+        if str(fmt.get("format_note") or "").lower().find("storyboard") >= 0:
+            continue
+
         vcodec = fmt.get("vcodec")
         acodec = fmt.get("acodec")
         height = fmt.get("height")
-        is_audio_only = vcodec in (None, "none") and acodec not in (None, "none")
-        is_video = vcodec not in (None, "none")
+        is_audio_only = vcodec in (None, "none", "images") and acodec not in (
+            None,
+            "none",
+        )
+        is_video = vcodec not in (None, "none", "images")
 
         if is_video:
-            # Keep all common video resolutions; high-res YouTube is often video-only (DASH).
-            if isinstance(height, int) and height >= 144:
-                videos.append(fmt)
+            # Keep all practical video formats from 144p upward.
+            if not isinstance(height, int) or height < 144:
+                continue
+            videos.append(fmt)
             continue
 
         if is_audio_only:
             audios.append(fmt)
 
-    videos.sort(key=lambda f: (f.get("height") or 0, 1 if f.get("ext") == "mp4" else 0), reverse=True)
+    videos.sort(
+        key=lambda f: (
+            f.get("height") or 0,
+            1 if f.get("acodec") not in (None, "none") else 0,
+            1 if f.get("ext") == "mp4" else 0,
+            f.get("tbr") or 0,
+        ),
+        reverse=True,
+    )
     audios.sort(key=lambda f: f.get("abr") or 0, reverse=True)
 
     # Limit list size for UI usability while keeping quality choices.
-    return videos[:30] + audios[:8]
+    return videos[:60] + audios[:12]
 
 
 def fetch_data(playlist_url: str) -> List[Dict[str, Any]]:

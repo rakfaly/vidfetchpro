@@ -9,6 +9,15 @@ from apps.downloads.services.yt_auth import build_ytdlp_common_opts, cookies_ena
 class VideoMetadataFetcher:
     """Service class to fetch video metadata using yt-dlp."""
 
+    @staticmethod
+    def _has_video_formats(info: Dict[str, Any]) -> bool:
+        entries = info.get("entries") or [info]
+        for entry in entries:
+            for fmt in entry.get("formats", []) or []:
+                if fmt.get("vcodec") not in (None, "none", "images"):
+                    return True
+        return False
+
     def fetch(self, url: str, *, fast: bool = False) -> Dict[str, Any]:
         """Fetch metadata for a URL without downloading the media."""
 
@@ -37,6 +46,15 @@ class VideoMetadataFetcher:
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
+                # Some YouTube client profiles intermittently return audio-only sets.
+                # Retry with broader/default client options to recover video formats.
+                if "youtube.com" in url and not self._has_video_formats(info):
+                    fallback_opts = dict(ydl_opts)
+                    fallback_opts.pop("extractor_args", None)
+                    with YoutubeDL(fallback_opts) as fallback_ydl:
+                        fallback_info = fallback_ydl.extract_info(url, download=False)
+                        if self._has_video_formats(fallback_info):
+                            return fallback_info
                 return info
         except Exception as exc:
             message = str(exc)

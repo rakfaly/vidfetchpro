@@ -12,28 +12,24 @@
             <select name="format"
                     class="w-full rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">
                 {% for fmt in formats %}
-                    <hr />
-                    <optgroup label=" {% if fmt.height > 720 %} Pro Plan {% elif fmt.height > 480 %} Registered Plan {% else %} Free Plan {% endif %}">
-                        <option value="{{ fmt.format_id }}"
-                                {% if fmt.format_id|stringformat:'s' == default_format_id %}selected{% endif %}
-                                {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %}>
-                            {{ fmt.ext }} ·
-                            {% if fmt.height %}{{ fmt.height }}p{% endif %}
-                            -
-                            {% if fmt.height and fmt.height >= 720 %}
-                                High quality video + audio
-                            {% elif fmt.height and fmt.height >= 480 %}
-                                Balanced size and quality
-                            {% elif fmt.vcodec != 'none' and fmt.acodec == 'none' %}
-                                Video only (audio will be merged automatically)
-                            {% elif fmt.acodec != 'none' %}
-                                Audio only (fastest)
-                            {% else %}
-                                Unknown format
-                            {% endif %}
-                            {% if fmt.filesize %}({{ fmt.filesize|filesizeformat }}){% endif %}
-                        </option>
-                    </optgroup>
+                    <option value="{{ fmt.format_id }}"
+                            {% if fmt.format_id|stringformat:'s' == default_format_id %}selected{% endif %}
+                            {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %}>
+                        {{ fmt.ext|default:"bin" }} ·
+                        {% if fmt.height %}{{ fmt.height }}p{% else %}audio{% endif %}
+                        -
+                        {% if fmt.vcodec != 'none' and fmt.acodec != 'none' %}
+                            Video + audio
+                        {% elif fmt.vcodec != 'none' and fmt.acodec == 'none' %}
+                            Video only (audio auto-merged)
+                        {% elif fmt.acodec != 'none' %}
+                            Audio only
+                        {% else %}
+                            Unknown format
+                        {% endif %}
+                        {% if fmt.filesize %} ({{ fmt.filesize|filesizeformat }}){% endif %}
+                        {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %} [Plan limit]{% endif %}
+                    </option>
                 {% endfor %}
             </select>
         </form>

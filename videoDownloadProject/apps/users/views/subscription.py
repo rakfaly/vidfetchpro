@@ -53,7 +53,7 @@ def poll_subscription_status(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if profile.plan_tier == UserProfile.PLAN_PRO:
         response = HttpResponse("")
-        response["HX-Refresh"] = "true"
+        response["HX-Redirect"] = f"{reverse('pricing')}?subscription=pro_activated"
         return response
     return HttpResponse(
         '<p class="text-xs text-slate-500 dark:text-slate-400">'
