@@ -170,3 +170,4 @@ PAYPAL_RECEIVER_EMAIL = os.environ.get("PAYPAL_RECEIVER_EMAIL")
 
 # yt-dlp server auth/cookies support for providers that require sign-in checks.
 YTDLP_COOKIES_FILE = os.environ.get("YTDLP_COOKIES_FILE", "")
+YTDLP_COOKIES_RAW = os.environ.get("YTDLP_COOKIES_RAW", "")

@@ -83,20 +83,33 @@ def _filtered_formats(raw_formats: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     Keeps MP4 formats >= 480p, and audio-only formats.
     De-duplicates by max filesize per height.
     """
-    formats = []
-    for format in raw_formats:
-        if (
-            (format.get("filesize") is not None)
-            and (format.get("filesize") >= 5000)
-            # and (format.get("ext") in ("mp4"))
-        ):
-            if (format.get("height") is not None) and (format.get("height") >= 480):
-                formats.append(format)
-            elif format.get("vcodec") in (None, "none"):  # audio aonly formats
-                formats.append(format)
-            else:
-                pass
-    formats = unique_by_key_max(formats, key="height", max_by="filesize")
+    formats: List[Dict[str, Any]] = []
+    for fmt in raw_formats:
+        format_id = fmt.get("format_id")
+        if format_id in (None, ""):
+            continue
+
+        height = fmt.get("height")
+        vcodec = fmt.get("vcodec")
+        is_audio_only = vcodec in (None, "none")
+        is_video_target = (height is not None) and (height >= 480)
+        if not (is_video_target or is_audio_only):
+            continue
+
+        # yt-dlp often omits exact filesize for YouTube; keep the format anyway.
+        if fmt.get("filesize") is None and fmt.get("filesize_approx") is not None:
+            fmt = dict(fmt)
+            fmt["filesize"] = fmt.get("filesize_approx")
+        formats.append(fmt)
+
+    if not formats:
+        return []
+
+    formats = unique_by_key_max(
+        formats,
+        key="height",
+        max_by="filesize",
+    )
     return sorted(formats, key=lambda f: f.get("height") or 0, reverse=True)
 
 

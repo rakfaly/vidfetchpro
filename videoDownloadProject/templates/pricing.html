@@ -30,6 +30,14 @@
             <div class="card border border-slate-300/70 bg-slate-50 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                 Your account is already on Free plan.
             </div>
+        {% elif subscription_status == "payment_submitted" and user.is_authenticated and not is_pro %}
+            <div class="card border border-blue-300/70 bg-blue-50 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
+                Payment submitted. Waiting for PayPal confirmation.
+                <div class="mt-2"
+                     hx-get="{% url 'apps.users:poll_subscription_status' %}"
+                     hx-trigger="load, every 3s"
+                     hx-swap="innerHTML"></div>
+            </div>
         {% endif %}
         <div class="grid gap-6 xl:grid-cols-3">
             <article class="card space-y-4">

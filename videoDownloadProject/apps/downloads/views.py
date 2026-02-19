@@ -326,7 +326,7 @@ def prepare_download(request):
         return HttpResponse("")
 
     _entries, formats = build_playlist_preview(result.result)
-    fmt = next((f for f in formats if f.get("format_id") == fmt_id), None)
+    fmt = next((f for f in formats if str(f.get("format_id")) == str(fmt_id)), None)
     if not fmt:
         return HttpResponse("Format not found")
 

@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.dateparse import parse_datetime
@@ -42,6 +42,22 @@ def pricing(request):
             "is_pro": current_plan == UserProfile.PLAN_PRO,
             "subscription_status": request.GET.get("subscription"),
         },
+    )
+
+
+@login_required(login_url=reverse_lazy("apps.downloads:index"))
+@require_http_methods(["GET"])
+def poll_subscription_status(request):
+    """HTMX endpoint to refresh pricing page once subscription becomes Pro."""
+    _reconcile_recent_paypal_ipn_for_user(request.user.id)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if profile.plan_tier == UserProfile.PLAN_PRO:
+        response = HttpResponse("")
+        response["HX-Refresh"] = "true"
+        return response
+    return HttpResponse(
+        '<p class="text-xs text-slate-500 dark:text-slate-400">'
+        "Waiting for PayPal confirmation...</p>"
     )
 
 

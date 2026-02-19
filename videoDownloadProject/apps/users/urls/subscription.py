@@ -5,6 +5,7 @@ from apps.users.views import (
     cancel_pro_subscription,
     paypal_subscription_cancel,
     paypal_subscription_return,
+    poll_subscription_status,
     provider_subscription_event,
     pro_checkout,
     start_pro_checkout,
@@ -17,6 +18,11 @@ urlpatterns = [
         name="start_pro_checkout",
     ),
     path("subscription/pro/checkout", pro_checkout, name="pro_checkout"),
+    path(
+        "subscription/pro/status",
+        poll_subscription_status,
+        name="poll_subscription_status",
+    ),
     path(
         "subscription/paypal/return",
         paypal_subscription_return,

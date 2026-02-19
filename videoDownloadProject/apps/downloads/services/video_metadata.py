@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from apps.downloads.services.exceptions import DownloadFailed
 from apps.downloads.services.validators import validate_url
-from apps.downloads.services.yt_auth import build_ytdlp_common_opts, is_auth_challenge_error
+from apps.downloads.services.yt_auth import build_ytdlp_common_opts, cookies_enabled, is_auth_challenge_error
 
 
 class VideoMetadataFetcher:
@@ -41,8 +41,13 @@ class VideoMetadataFetcher:
         except Exception as exc:
             message = str(exc)
             if is_auth_challenge_error(message):
+                if not cookies_enabled():
+                    raise DownloadFailed(
+                        "YouTube requires valid authenticated cookies on the worker server. "
+                        "Set YTDLP_COOKIES_B64 (or YTDLP_COOKIES_FILE) on both web and worker services."
+                    ) from exc
                 raise DownloadFailed(
-                    "YouTube requires authenticated cookies for this video on the server."
+                    "YouTube rejected current cookies. Re-export fresh YouTube cookies and update YTDLP_COOKIES_B64."
                 ) from exc
             raise
 

@@ -21,14 +21,15 @@
                             {% if fmt.height %}{{ fmt.height }}p{% endif %}
                             -
                             {% if fmt.height and fmt.height >= 720 %}
-                                High quality video + audio ({{ fmt.filesize|filesizeformat }})
+                                High quality video + audio
                             {% elif fmt.height and fmt.height >= 480 %}
-                                Balanced size and quality ({{ fmt.filesize|filesizeformat }})
+                                Balanced size and quality
                             {% elif fmt.acodec != 'none' %}
-                                Audio only (fastest) ({{ fmt.filesize|filesizeformat }})
+                                Audio only (fastest)
                             {% else %}
                                 Unknown format
                             {% endif %}
+                            {% if fmt.filesize %} ({{ fmt.filesize|filesizeformat }}){% endif %}
                         </option>
                     </optgroup>
                 {% endfor %}
