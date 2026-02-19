@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from importlib.util import find_spec
 
 from apps.downloads.views import DownloadView
 from apps.users.views import AccountUpdateView, pricing
@@ -57,7 +58,7 @@ urlpatterns = [
     ),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and find_spec("django_browser_reload") is not None:
     # Include django_browser_reload URLs only in DEBUG mode
     urlpatterns += [
         path("__reload__/", include("django_browser_reload.urls")),

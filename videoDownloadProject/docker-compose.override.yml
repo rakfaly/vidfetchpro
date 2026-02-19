@@ -1,0 +1,21 @@
+services:
+  web:
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings_dev
+      DEBUG: "True"
+      SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
+      SECURE_HSTS_SECONDS: "0"
+      SECURE_HSTS_INCLUDE_SUBDOMAINS: "False"
+      SECURE_HSTS_PRELOAD: "False"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+
+  worker:
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings_dev
+      DEBUG: "True"
+    volumes:
+      - .:/app

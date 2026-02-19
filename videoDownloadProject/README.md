@@ -43,6 +43,46 @@ Worker:
 celery -A core worker -l info
 ```
 
+## Docker (Recommended Multi-Service)
+This project includes a production-style Docker Compose setup:
+- `web` (Django + Gunicorn)
+- `worker` (Celery worker)
+- `db` (PostgreSQL)
+- `rabbitmq` (broker + management UI)
+
+### 1) Prepare env file
+```bash
+cp .env.docker.example .env.docker
+```
+Then edit `.env.docker` if needed (especially `SECRET_KEY`).
+
+### 2) Build and start
+```bash
+docker compose up --build
+```
+By default, `docker-compose.override.yml` is loaded automatically for local dev:
+- `web` runs `runserver` with code auto-reload
+- source code is bind-mounted into containers
+
+To run production-like services (Gunicorn command from `docker-compose.yml`) without the override:
+```bash
+docker compose -f docker-compose.yml up --build
+```
+
+### 3) Access app
+- Django app: `http://localhost:8000`
+- RabbitMQ management: `http://localhost:15672`
+
+### 4) Stop services
+```bash
+docker compose down
+```
+
+### 5) Reset all data (including DB volume)
+```bash
+docker compose down -v
+```
+
 ## Production Settings
 Use `core.settings_prod` in production and provide environment variables.
 

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+from importlib.util import find_spec
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -57,7 +58,6 @@ INSTALLED_APPS = [
     "apps.common",
     "django_celery_results",
     "django_htmx",
-    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -97,11 +97,11 @@ WSGI_APPLICATION = "core.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "videodldb",
+        "NAME": os.environ.get("DB_NAME", "videodldb"),
         "USER": os.environ.get("DB_USER"),
         "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": "localhost",
-        "PORT": "5432",
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -147,13 +147,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 TAILWIND_APP_NAME = "theme"
 
+if find_spec("django_extensions") is not None:
+    INSTALLED_APPS += ["django_extensions"]
+
 if DEBUG:
-    # Add django_browser_reload only in DEBUG mode
-    INSTALLED_APPS += ["django_browser_reload"]
-    # Add django_browser_reload middleware only in DEBUG mode
-    MIDDLEWARE += [
-        "django_browser_reload.middleware.BrowserReloadMiddleware",
-    ]
+    if find_spec("django_browser_reload") is not None:
+        # Add django_browser_reload only in DEBUG mode when installed.
+        INSTALLED_APPS += ["django_browser_reload"]
+        MIDDLEWARE += [
+            "django_browser_reload.middleware.BrowserReloadMiddleware",
+        ]
 
 VIDEO_DOWNLOAD_ROOT = Path.home() / "Downloads"
 

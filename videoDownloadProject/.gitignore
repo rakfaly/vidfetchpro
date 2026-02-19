@@ -28,6 +28,7 @@ dist/
 # Local secrets and databases
 .env
 .env.*
+.env.docker
 *.pem
 *.key
 secrets*.json
