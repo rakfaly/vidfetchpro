@@ -9,11 +9,20 @@ from django.urls import reverse, reverse_lazy
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from paypal.standard.ipn.models import PayPalIPN
 
 from apps.users.forms import CustomPayPalPaymentsForm
 from apps.users.models import SubscriptionEvent, UserProfile
+from apps.users.signals import handle_valid_paypal_ipn
 
 PENDING_PRO_CHECKOUT_SESSION_KEY = "pending_pro_checkout"
+
+
+def _reconcile_recent_paypal_ipn_for_user(user_id: int, limit: int = 20) -> None:
+    """Process recent PayPal IPNs for this user idempotently."""
+    qs = PayPalIPN.objects.filter(custom=str(user_id)).order_by("-created_at")[:limit]
+    for ipn_obj in qs:
+        handle_valid_paypal_ipn(sender=PayPalIPN, ipn_obj=ipn_obj)
 
 
 @require_http_methods(["GET"])
@@ -21,6 +30,7 @@ def pricing(request):
     """Render pricing page with authenticated user's current subscription state."""
     current_plan = UserProfile.PLAN_FREE
     if request.user.is_authenticated:
+        _reconcile_recent_paypal_ipn_for_user(request.user.id)
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         current_plan = profile.plan_tier
 
@@ -84,6 +94,7 @@ def pro_checkout(request):
 @require_http_methods(["GET"])
 def paypal_subscription_return(request):
     """Redirect user after PayPal returns to the app."""
+    _reconcile_recent_paypal_ipn_for_user(request.user.id)
     return redirect(f"{reverse('pricing')}?subscription=payment_submitted")
 
 
