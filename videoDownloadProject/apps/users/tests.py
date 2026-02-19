@@ -6,6 +6,7 @@ from django.urls import reverse
 from paypal.standard.ipn.signals import valid_ipn_received
 
 from apps.users.models import SubscriptionEvent, UserProfile
+from apps.users.signals import handle_paypal_ipn_post_save
 
 
 class UsersHtmxFlowTests(TestCase):
@@ -313,4 +314,32 @@ class PayPalIpnSignalTests(TestCase):
         self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_FREE)
         self.assertFalse(
             SubscriptionEvent.objects.filter(event_id="paypal:subscr_payment:track_003").exists()
+        )
+
+    def test_post_save_fallback_processes_ipn(self):
+        ipn_obj = SimpleNamespace(
+            receiver_email="merchant@example.com",
+            custom=str(self.user.id),
+            invoice=f"sub-{self.user.id}-abc123",
+            txn_type="subscr_payment",
+            payment_status="Completed",
+            txn_id="txn_004",
+            subscr_id="subscr_004",
+            payer_id="payer_004",
+            payer_email="buyer@example.com",
+            ipn_track_id="track_004",
+            flag=False,
+        )
+
+        with self.settings(PAYPAL_RECEIVER_EMAIL="merchant@example.com"):
+            handle_paypal_ipn_post_save(sender=object(), instance=ipn_obj, created=True)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_PRO)
+        self.assertTrue(
+            SubscriptionEvent.objects.filter(
+                event_id="paypal:subscr_payment:track_004",
+                event_type="subscription.activated",
+                processed=True,
+            ).exists()
         )

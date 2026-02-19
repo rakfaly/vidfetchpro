@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from paypal.standard.ipn.models import PayPalIPN
 from paypal.standard.ipn.signals import valid_ipn_received
 
 from .models import SubscriptionEvent, UserProfile
@@ -97,7 +98,7 @@ def _apply_subscription_event(profile: UserProfile, event_id: str, event_type: s
             profile.subscription_state = UserProfile.SUBSCRIPTION_CANCELED
 
 
-@receiver(valid_ipn_received)
+@receiver(valid_ipn_received, dispatch_uid="users.paypal.valid_ipn")
 def handle_valid_paypal_ipn(sender, **kwargs):
     """Bridge PayPal IPN events into SubscriptionEvent/UserProfile updates."""
     ipn_obj = kwargs.get("ipn_obj")
@@ -171,3 +172,15 @@ def handle_valid_paypal_ipn(sender, **kwargs):
         event.processing_error = str(exc)
         event.save(update_fields=["processing_error", "updated_at"])
         logger.exception("PayPal IPN processing failed for event_id=%s", event_id)
+
+
+@receiver(post_save, sender=PayPalIPN, dispatch_uid="users.paypal.ipn_post_save")
+def handle_paypal_ipn_post_save(sender, instance: PayPalIPN, created: bool, **kwargs):
+    """
+    Fallback bridge for environments where `valid_ipn_received` may be missed.
+
+    Idempotency is enforced by SubscriptionEvent.event_id uniqueness.
+    """
+    if getattr(instance, "flag", False):
+        return
+    handle_valid_paypal_ipn(sender=sender, ipn_obj=instance)
