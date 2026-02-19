@@ -1,0 +1,10 @@
+{% if oob_fetch_button %}
+    <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
+        {% include "downloads/partials/fetch/button.html" with task_status="FAILED" %}
+    </div>
+{% endif %}
+<div class="card">
+    <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-300">
+        {{ fetch_error|default:"Failed to fetch metadata" }}
+    </span>
+</div>

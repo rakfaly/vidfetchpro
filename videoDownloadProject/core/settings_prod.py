@@ -48,6 +48,7 @@ USE_X_FORWARDED_HOST = _parse_bool_env("USE_X_FORWARDED_HOST", True)
 
 # Production static files directory (for `collectstatic` outputs).
 STATIC_ROOT = os.environ.get("STATIC_ROOT", str(BASE_DIR / "staticfiles"))
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # TASKS = {
 #     "default": {

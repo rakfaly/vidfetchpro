@@ -1,0 +1,45 @@
+{% load static %}
+<div id="download-section" class="space-y-6 justify-between gap-4">
+    {% if download_error %}
+        <div class="rounded-2xl border border-amber-300/70 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-900/20 dark:text-amber-200">
+            {{ download_error }}
+        </div>
+    {% endif %}
+    <div class="mt-6 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            Logged users unlock 4K + lossless
+        </div>
+        <form method="post"
+              hx-post="{% url 'apps.downloads:start_download_spinner' %}"
+              hx-target="#spinner-download-start"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <input type="hidden" name="format" value="{{ format_id }}" />
+            <input type="hidden" name="format_title" value="{{ format_title }}" />
+            <div class="flex" id="download-button-wrap">
+                {% include "downloads/partials/download/button.html" with poll=poll|default:False %}
+            </div>
+        </form>
+    </div>
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Download status</h2>
+            <span class="text-xs text-slate-500">Step 4</span>
+        </div>
+        <div class="mt-4 grid gap-4" id="progress-status">
+            {% include "downloads/partials/download/progress_status.html" %}
+        </div>
+    </div>
+    <form class="relative flex items-center"
+          action="{% url 'apps.downloads:refresh_formats' %}"
+          methos="post">
+        {% csrf_token %}
+        <button class="btn btn-ghost w-fit text-center" type="submit">
+            <img src="{% static 'downloads/images/refresh.svg' %}"
+                 class="w-7 h-7"
+                 alt="refresh-button" />
+            Refresh formats
+        </button>
+    </form>
+</div>

@@ -1,0 +1,39 @@
+<div class="card grid gap-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Choose format</h2>
+        <span class="text-xs text-slate-500">Step 3</span>
+    </div>
+    <div>
+        <form hx-target="#download-section"
+              hx-post="{% url 'apps.downloads:prepare_download' %}"
+              hx-trigger="load, change"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <select name="format"
+                    class="w-full rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">
+                {% for fmt in formats %}
+                    <hr />
+                    <optgroup label=" {% if fmt.height > 720 %} Pro Plan {% elif fmt.height > 480 %} Registered Plan {% else %} Free Plan {% endif %}">
+                        <option value="{{ fmt.format_id }}"
+                                {% if fmt.format_id|stringformat:'s' == default_format_id %}selected{% endif %}
+                                {% if fmt.format_id|stringformat:'s' not in allowed_format_ids %}disabled{% endif %}>
+                            {{ fmt.ext }} ·
+                            {% if fmt.height %}{{ fmt.height }}p{% endif %}
+                            -
+                            {% if fmt.height and fmt.height >= 720 %}
+                                High quality video + audio ({{ fmt.filesize|filesizeformat }})
+                            {% elif fmt.height and fmt.height >= 480 %}
+                                Balanced size and quality ({{ fmt.filesize|filesizeformat }})
+                            {% elif fmt.acodec != 'none' %}
+                                Audio only (fastest) ({{ fmt.filesize|filesizeformat }})
+                            {% else %}
+                                Unknown format
+                            {% endif %}
+                        </option>
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+{% include "downloads/partials/download/prepare_section.html" %}

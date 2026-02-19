@@ -1,0 +1,58 @@
+<div class="flex pb-5 items-center justify-between">
+    <h2 class="text-lg font-semibold">Download history</h2>
+    {% if user.is_authenticated %}
+        <button type="button"
+                class="btn-ghost pill inline-flex items-center gap-2 pl-2 pr-2"
+                onclick="document.getElementById('clearHistoryDialog').showModal()">
+            <span class="theme-label">Clear</span>
+        </button>
+        <!-- <button hx-delete="{% url 'apps.history:clear_history' %}" -->
+        <!--         hx-confirm="Clear download history?" -->
+        <!--         hx-target="#history-card" -->
+        <!--         hx-swap="innerHTML transition:true" -->
+        <!--         hx-trigger="click"> -->
+        <!--     <span class="theme-label">Clear</span> -->
+        <!-- </button> -->
+    {% endif %}
+</div>
+{% if user.is_authenticated and history_list %}
+    <dialog id="clearHistoryDialog"
+            class="modal-backdrop p-0"
+            onclick="if (event.target === this) this.close()">
+        <div class="w-[min(90vw,28rem)] rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-white">
+            <h3 class="text-base font-semibold">Clear download history?</h3>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                This will delete all history entries. This action can’t be undone.
+            </p>
+            <div class="mt-5 flex items-center justify-end gap-3">
+                <button type="button"
+                        class="btn-ghost pill"
+                        onclick="this.closest('dialog').close()">Cancel</button>
+                <button type="button"
+                        class="pill bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700"
+                        hx-post="{% url 'apps.history:clear_history' %}"
+                        hx-target="#history-card"
+                        hx-swap="innerHTML transition:true"
+                        hx-trigger="click"
+                        hx-on="htmx:afterRequest: this.closest('dialog').close()">Yes, clear</button>
+            </div>
+        </div>
+    </dialog>
+{% endif %}
+{% for item in history_list %}
+    <div class="rounded-2xl border border-slate-200 p-4 text-sm dark:border-slate-800">
+        <div class="flex items-center justify-between">
+            <p class="font-semibold">{{ item.job.video|default:"Untitled" }}</p>
+            <span class="text-xs {% if item.success %}text-emerald-500{% else %}text-rose-500{% endif %}">
+                {{ item.success|yesno:"Completed,Failed" }}
+            </span>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+            <span>{{ item.job.format.container|upper }} · {{ item.job.format.quality_label|default:"N/A" }}</span>
+            {% if item.job.output_filename %}<span>{{ item.job.output_filename }}</span>{% endif %}
+            <span>{{ item.created_at|date:"M d, Y H:i" }}</span>
+        </div>
+    </div>
+{% empty %}
+    <p class="text-sm text-slate-500">No history yet.</p>
+{% endfor %}

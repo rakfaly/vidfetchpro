@@ -1,0 +1,38 @@
+<!-- Fetched Video Card-->
+{% if oob_fetch_button %}
+    <div id="fetch-button-wrap" class="flex" hx-swap-oob="outerHTML">
+        {% include "downloads/partials/fetch/button.html" with task_status="SUCCESS" %}
+    </div>
+{% endif %}
+{% for entry in fetched_data %}
+    <div class="card video-metadata-card">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Video metadata</h2>
+            <span class="text-xs text-slate-500">Step 2</span>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-[auto_1fr]">
+            <div class="h-24 w-40 rounded-2xl bg-linear-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+                <img src="{{ entry.thumbnail }}"
+                     alt="Video Thumbnail"
+                     class="h-full w-full object-cover"
+                     data-video-thumbnail>
+            </div>
+            <div class="space-y-2 text-sm">
+                <p class="font-semibold" data-video-title>{{ entry.title }}</p>
+                <div class="flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800"
+                          data-video-duration>{{ entry.duration }}</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800"
+                          data-video-quality>{{ entry.height }}p</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800"
+                          data-video-extractor>{{ entry.extractor }}</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800"
+                          data-video-channel>{{ entry.uploader }}</span>
+                </div>
+                <p class="text-xs text-rose-500" data-video-error></p>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-video-date>{{ entry.upload_date }}</p>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% include "downloads/partials/fetch/formats_form.html" %}
