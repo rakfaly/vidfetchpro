@@ -10,6 +10,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from apps.users.forms import CustomPayPalPaymentsForm
 from apps.users.models import SubscriptionEvent, UserProfile
 
 PENDING_PRO_CHECKOUT_SESSION_KEY = "pending_pro_checkout"
@@ -58,11 +59,40 @@ def pro_checkout(request):
     if not has_pending_checkout:
         return redirect("pricing")
 
+    paypal_receiver_email = getattr(settings, "PAYPAL_RECEIVER_EMAIL", "").strip()
+    paypal_form = None
+    if paypal_receiver_email:
+        paypal_form = CustomPayPalPaymentsForm(
+            user=request.user,
+            request=request,
+            initial={"amount": "9.00", "plan_name": "Pro Subscription"},
+        )
+
     return render(
         request,
         "users/subscription_checkout.html",
-        {"plan_name": "Pro", "price_label": "$9/month"},
+        {
+            "plan_name": "Pro",
+            "price_label": "$9/month",
+            "paypal_form": paypal_form,
+            "paypal_configured": bool(paypal_receiver_email),
+        },
     )
+
+
+@login_required(login_url=reverse_lazy("apps.downloads:index"))
+@require_http_methods(["GET"])
+def paypal_subscription_return(request):
+    """Redirect user after PayPal returns to the app."""
+    return redirect(f"{reverse('pricing')}?subscription=payment_submitted")
+
+
+@login_required(login_url=reverse_lazy("apps.downloads:index"))
+@require_http_methods(["GET"])
+def paypal_subscription_cancel(request):
+    """Handle cancel return from PayPal checkout."""
+    request.session.pop(PENDING_PRO_CHECKOUT_SESSION_KEY, None)
+    return redirect(f"{reverse('pricing')}?subscription=payment_canceled")
 
 
 @login_required(login_url=reverse_lazy("apps.downloads:index"))

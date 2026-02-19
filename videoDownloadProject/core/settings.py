@@ -27,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+
 def _parse_bool_env(name: str, default: bool) -> bool:
     raw = os.environ.get(name)
     if raw is None:
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     "apps.common",
     "django_celery_results",
     "django_htmx",
+    "paypal.standard.ipn",
 ]
 
 MIDDLEWARE = [
@@ -162,3 +164,6 @@ VIDEO_DOWNLOAD_ROOT = Path.home() / "Downloads"
 
 # Subscription provider integration
 SUBSCRIPTION_WEBHOOK_SECRET = os.environ.get("SUBSCRIPTION_WEBHOOK_SECRET", "")
+
+PAYPAL_TEST = True
+PAYPAL_RECEIVER_EMAIL = os.environ.get("PAYPAL_RECEIVER_EMAIL")

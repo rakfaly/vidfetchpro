@@ -1,6 +1,9 @@
+from types import SimpleNamespace
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from paypal.standard.ipn.signals import valid_ipn_received
 
 from apps.users.models import SubscriptionEvent, UserProfile
 
@@ -215,3 +218,99 @@ class ProviderSubscriptionEventTests(TestCase):
         self.profile.refresh_from_db()
         self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_FREE)
         self.assertEqual(self.profile.subscription_state, UserProfile.SUBSCRIPTION_CANCELED)
+
+
+class PayPalIpnSignalTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            username="paypal-user",
+            email="paypal-user@example.com",
+            password="pass-12345",
+        )
+        self.profile = self.user.profile
+
+    def test_valid_subscription_payment_activates_pro(self):
+        ipn_obj = SimpleNamespace(
+            receiver_email="merchant@example.com",
+            custom=str(self.user.id),
+            invoice=f"sub-{self.user.id}-abc123",
+            txn_type="subscr_payment",
+            payment_status="Completed",
+            txn_id="txn_001",
+            subscr_id="subscr_001",
+            payer_id="payer_001",
+            payer_email="buyer@example.com",
+            mc_gross="9.00",
+            mc_currency="USD",
+            ipn_track_id="track_001",
+        )
+
+        with self.settings(PAYPAL_RECEIVER_EMAIL="merchant@example.com"):
+            valid_ipn_received.send(sender=object(), ipn_obj=ipn_obj)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_PRO)
+        self.assertEqual(self.profile.subscription_state, UserProfile.SUBSCRIPTION_ACTIVE)
+        self.assertEqual(self.profile.provider_subscription_id, "subscr_001")
+        self.assertEqual(self.profile.provider_customer_id, "payer_001")
+        self.assertTrue(
+            SubscriptionEvent.objects.filter(
+                event_id="paypal:subscr_payment:track_001",
+                event_type="subscription.activated",
+                processed=True,
+            ).exists()
+        )
+
+    def test_subscription_cancel_downgrades_to_free(self):
+        self.profile.apply_plan(UserProfile.PLAN_PRO)
+        self.profile.provider_subscription_id = "subscr_001"
+        self.profile.save()
+
+        ipn_obj = SimpleNamespace(
+            receiver_email="merchant@example.com",
+            custom=str(self.user.id),
+            invoice=f"sub-{self.user.id}-abc123",
+            txn_type="subscr_cancel",
+            payment_status="",
+            txn_id="",
+            subscr_id="subscr_001",
+            payer_id="payer_001",
+            payer_email="buyer@example.com",
+            ipn_track_id="track_002",
+        )
+
+        with self.settings(PAYPAL_RECEIVER_EMAIL="merchant@example.com"):
+            valid_ipn_received.send(sender=object(), ipn_obj=ipn_obj)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_FREE)
+        self.assertEqual(self.profile.subscription_state, UserProfile.SUBSCRIPTION_CANCELED)
+        self.assertTrue(
+            SubscriptionEvent.objects.filter(
+                event_id="paypal:subscr_cancel:track_002",
+                event_type="subscription.canceled",
+                processed=True,
+            ).exists()
+        )
+
+    def test_receiver_email_mismatch_is_rejected(self):
+        ipn_obj = SimpleNamespace(
+            receiver_email="wrong-merchant@example.com",
+            custom=str(self.user.id),
+            invoice=f"sub-{self.user.id}-abc123",
+            txn_type="subscr_payment",
+            payment_status="Completed",
+            txn_id="txn_003",
+            subscr_id="subscr_003",
+            ipn_track_id="track_003",
+        )
+
+        with self.settings(PAYPAL_RECEIVER_EMAIL="merchant@example.com"):
+            valid_ipn_received.send(sender=object(), ipn_obj=ipn_obj)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.plan_tier, UserProfile.PLAN_FREE)
+        self.assertFalse(
+            SubscriptionEvent.objects.filter(event_id="paypal:subscr_payment:track_003").exists()
+        )

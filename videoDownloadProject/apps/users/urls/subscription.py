@@ -1,8 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 
 from apps.users.views import (
     activate_pro_subscription,
     cancel_pro_subscription,
+    paypal_subscription_cancel,
+    paypal_subscription_return,
     provider_subscription_event,
     pro_checkout,
     start_pro_checkout,
@@ -15,6 +17,17 @@ urlpatterns = [
         name="start_pro_checkout",
     ),
     path("subscription/pro/checkout", pro_checkout, name="pro_checkout"),
+    path(
+        "subscription/paypal/return",
+        paypal_subscription_return,
+        name="paypal_subscription_return",
+    ),
+    path(
+        "subscription/paypal/cancel",
+        paypal_subscription_cancel,
+        name="paypal_subscription_cancel",
+    ),
+    path("subscription/paypal/", include("paypal.standard.ipn.urls")),
     path(
         "subscription/pro/activate",
         activate_pro_subscription,

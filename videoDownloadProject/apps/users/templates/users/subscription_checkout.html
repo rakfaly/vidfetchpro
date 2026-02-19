@@ -20,7 +20,7 @@
                     <li>3. On successful callback/webhook, activate Pro plan.</li>
                 </ol>
                 <div class="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
-                    Temporary mode: click "Simulate successful payment" to test end-to-end behavior.
+                    Payment state should be confirmed by PayPal IPN/webhook before plan activation.
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <a href="{% url 'pricing' %}" class="btn btn-ghost">Back to pricing</a>
@@ -39,11 +39,13 @@
                     </div>
                 </div>
                 <div class="flex justify-center">
-                    <form method="post"
-                          action="{% url 'apps.users:activate_pro_subscription' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary">Simulate successful payment</button>
-                    </form>
+                    {% if paypal_configured and paypal_form %}
+                        {{ paypal_form.render }}
+                    {% else %}
+                        <p class="text-sm text-amber-700 dark:text-amber-300">
+                            Configure <code>PAYPAL_RECEIVER_EMAIL</code> to enable PayPal checkout.
+                        </p>
+                    {% endif %}
                 </div>
             </aside>
         </div>

@@ -9,6 +9,8 @@ from .security import change_password, close_change_password_panel
 from .subscription import (
     activate_pro_subscription,
     cancel_pro_subscription,
+    paypal_subscription_cancel,
+    paypal_subscription_return,
     pricing,
     provider_subscription_event,
     pro_checkout,
@@ -27,6 +29,8 @@ __all__ = [
     "create_account_success_toast",
     "login_popover",
     "logout_user",
+    "paypal_subscription_cancel",
+    "paypal_subscription_return",
     "pricing",
     "provider_subscription_event",
     "pro_checkout",
