@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from apps.downloads.services.exceptions import DownloadFailed
 from apps.downloads.services.validators import validate_url
+from apps.downloads.services.yt_auth import build_ytdlp_common_opts, is_auth_challenge_error
 
 
 class VideoMetadataFetcher:
@@ -23,12 +24,8 @@ class VideoMetadataFetcher:
             "noplaylist": False,
             "socket_timeout": 15,
             "retries": 3,
-            # Prefer Android client to reduce JS challenge friction.
-            # "extractor_args": {"youtube": {"player_client": ["android"]}},
-            # Enable JS challenge solver via remote components.
-            "remote_components": ["ejs:github"],
-            "js_runtimes": {"deno": {}},
         }
+        ydl_opts.update(build_ytdlp_common_opts())
         if fast:
             ydl_opts.update(
                 {
@@ -37,10 +34,17 @@ class VideoMetadataFetcher:
                 }
             )
 
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-
-            return info
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                return info
+        except Exception as exc:
+            message = str(exc)
+            if is_auth_challenge_error(message):
+                raise DownloadFailed(
+                    "YouTube requires authenticated cookies for this video on the server."
+                ) from exc
+            raise
 
         # Dummy implementation for testing without yt-dlp
         # with open("assets/single_video_sample.json") as f:

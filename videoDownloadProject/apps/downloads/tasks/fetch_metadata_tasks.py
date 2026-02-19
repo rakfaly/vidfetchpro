@@ -3,12 +3,14 @@ from typing import Optional
 from celery import shared_task
 from celery.result import AsyncResult
 
+from apps.downloads.services.exceptions import DownloadFailed
 from apps.downloads.services.video_metadata import VideoMetadataFetcher
 
 
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),
+    dont_autoretry_for=(DownloadFailed,),
     retry_backoff=True,
     retry_jitter=True,
     retry_kwargs={"max_retries": 5},

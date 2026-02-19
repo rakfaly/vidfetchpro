@@ -10,6 +10,7 @@ from django.utils.text import slugify
 from apps.downloads.models import DownloadJob
 from apps.downloads.services.exceptions import DownloadFailed
 from apps.downloads.services.validators import ensure_format_allowed, validate_url
+from apps.downloads.services.yt_auth import build_ytdlp_common_opts, is_auth_challenge_error
 
 
 class VideoDownload:
@@ -125,15 +126,19 @@ class VideoDownload:
             "retries": 3,
             "fragment_retries": 3,
             "concurrent_fragment_downloads": 8,
-            # Prefer Android client to reduce JS challenge friction.
-            "extractor_args": {"youtube": {"player_client": ["android"]}},
-            # Enable JS challenge solver via remote components.
-            "remote_components": ["ejs:github"],
-            "js_runtimes": {"deno": {}},
         }
+        ydl_opts.update(build_ytdlp_common_opts())
 
-        with YoutubeDL(ydl_opts) as ydl:
-            result = ydl.extract_info(url, download=True)
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                result = ydl.extract_info(url, download=True)
+        except Exception as exc:
+            message = str(exc)
+            if is_auth_challenge_error(message):
+                raise DownloadFailed(
+                    "YouTube requires authenticated cookies for this video on the server."
+                ) from exc
+            raise
 
         with transaction.atomic():
             self.job.output_filename = os.path.basename(ydl.prepare_filename(result))
