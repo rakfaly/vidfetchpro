@@ -203,13 +203,13 @@ def launch_playlist_downloads(user, info: dict, format_id: str) -> List[Download
             f for f in entry_formats if str(f.get("format_id")) == str(format_id)
         ]
         if not selected_formats:
-            available_ids = [
-                str(f.get("format_id"))
-                for f in entry_formats
-                if f.get("format_id") is not None
-            ]
-            print("No matching format_id:", format_id, "available:", available_ids[:20])
-            continue
+            # Format IDs from metadata can become stale between fetch and download.
+            # Fallback to the best currently available format to avoid hard failure.
+            fallback_candidates = _filtered_formats(entry_formats)
+            if fallback_candidates:
+                selected_formats = [fallback_candidates[0]]
+            else:
+                continue
 
         created_formats = _create_formats(video, selected_formats, use_filtered=False)
         if not created_formats:
