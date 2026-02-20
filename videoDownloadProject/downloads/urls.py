@@ -22,4 +22,5 @@ urlpatterns = [
         name="start_download_spinner",
     ),
     path("fetch/refresh-formats", views.refresh_formats, name="refresh_formats"),
+    path("download/<uuid:job_id>/", views.download_file, name="download_file"),
 ]
