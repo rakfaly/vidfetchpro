@@ -102,23 +102,34 @@ class VideoDownload:
         except Exception as exc:  # pragma: no cover - runtime dependency
             raise DownloadFailed("yt-dlp is not installed") from exc
 
-        # Prefer the exact format chosen by the user when available.
-        if self.video_format.format_id:
-            format_selector = self.video_format.format_id
-            # Merge audio if the selected format is video-only.
+        requested_format_id = str(self.video_format.format_id or "").strip()
+
+        # Build a robust selector chain to avoid hard failures when provider format
+        # ids change between metadata fetch and download start.
+        format_selectors: list[str] = []
+        if requested_format_id:
             if self.video_format.codec_audio in ("", "none"):
-                format_selector = f"{format_selector}+bestaudio/best"
-        elif self.video_format.is_audio_only:
-            format_selector = "bestaudio/best"
+                # Selected stream is video-only, so merge with best audio.
+                format_selectors.append(f"{requested_format_id}+bestaudio")
+            # Try exact selected stream too (works for progressive formats).
+            format_selectors.append(requested_format_id)
+
+        if self.video_format.is_audio_only:
+            format_selectors.extend(
+                [
+                    "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio",
+                    "best",
+                ]
+            )
         else:
-            # Enforce a minimum video height of 480p for video downloads.
-            format_selector = (
-                "bestvideo[height>=480][vcodec^=avc1]+bestaudio/best"
-                "/bestvideo[height>=480]+bestaudio/best"
+            format_selectors.extend(
+                [
+                    "bestvideo[height>=720]+bestaudio/bestvideo+bestaudio",
+                    "best[height>=480]/best",
+                ]
             )
 
         ydl_opts = {
-            "format": format_selector,
             "outtmpl": output_path,
             "progress_hooks": [self._progress_hook],
             "noplaylist": True,
@@ -129,24 +140,41 @@ class VideoDownload:
         }
         ydl_opts.update(build_ytdlp_common_opts())
 
-        try:
-            with YoutubeDL(ydl_opts) as ydl:
-                result = ydl.extract_info(url, download=True)
-        except Exception as exc:
-            message = str(exc)
-            if is_auth_challenge_error(message):
-                if not cookies_enabled():
+        last_exc: Exception | None = None
+        result: Dict[str, Any] | None = None
+        for selector in format_selectors:
+            try:
+                attempt_opts = dict(ydl_opts)
+                attempt_opts["format"] = selector
+                with YoutubeDL(attempt_opts) as ydl:
+                    result = ydl.extract_info(url, download=True)
+                    break
+            except Exception as exc:
+                last_exc = exc
+                message = str(exc)
+                if is_auth_challenge_error(message):
+                    if not cookies_enabled():
+                        raise DownloadFailed(
+                            "YouTube requires valid authenticated cookies on the worker server. "
+                            "Set YTDLP_COOKIES_B64 (or YTDLP_COOKIES_FILE) on both web and worker services."
+                        ) from exc
                     raise DownloadFailed(
-                        "YouTube requires valid authenticated cookies on the worker server. "
-                        "Set YTDLP_COOKIES_B64 (or YTDLP_COOKIES_FILE) on both web and worker services."
+                        "YouTube rejected current cookies. Re-export fresh YouTube cookies and update YTDLP_COOKIES_B64."
                     ) from exc
-                raise DownloadFailed(
-                    "YouTube rejected current cookies. Re-export fresh YouTube cookies and update YTDLP_COOKIES_B64."
-                ) from exc
-            raise
+                # Try next selector only when format is unavailable.
+                if "Requested format is not available" in message:
+                    continue
+                raise
+
+        if result is None:
+            if last_exc is not None:
+                raise last_exc
+            raise DownloadFailed("Unable to download video with available formats.")
 
         with transaction.atomic():
-            self.job.output_filename = os.path.basename(ydl.prepare_filename(result))
+            # Rebuild a filename from the successful result payload.
+            ext = result.get("ext") or self.video_format.container or "mp4"
+            self.job.output_filename = f"{slugify(self.video.title or 'video')}-{int(time.time())}.{ext}"
             self.job.status = "completed"
             self.job.completed_at = timezone.now()
             self.job.save(
