@@ -506,6 +506,43 @@ def progress_status(request):
         return HttpResponse("<p>Error: %s</p>" % e)
 
 
+def download_file(request, job_id):
+    """Stream a completed download to the requesting user."""
+    job = (
+        DownloadJob.objects.select_related("user")
+        .filter(id=job_id, status="completed")
+        .first()
+    )
+    if not job or not job.output_filename:
+        raise Http404("Download not found")
+
+    if request.user.is_authenticated:
+        if job.user_id != request.user.id:
+            raise Http404("Download not found")
+    else:
+        guest_id = request.session.get(GUEST_USER_SESSION_KEY)
+        if not guest_id or str(job.user_id) != str(guest_id):
+            raise Http404("Download not found")
+
+    base_dir = getattr(settings, "VIDEO_DOWNLOAD_ROOT", None)
+    if not base_dir:
+        raise Http404("Download not found")
+
+    base_dir = os.path.abspath(str(base_dir))
+    file_path = os.path.abspath(os.path.join(base_dir, job.output_filename))
+    if not file_path.startswith(base_dir + os.sep):
+        raise Http404("Download not found")
+
+    if not os.path.exists(file_path):
+        raise Http404("Download not found")
+
+    return FileResponse(
+        open(file_path, "rb"),
+        as_attachment=True,
+        filename=job.output_filename,
+    )
+
+
 def start_download_spinner(request):
     if request.method != "POST" or not request.htmx:
         return HttpResponse("")
