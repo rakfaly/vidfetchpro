@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
+from django.urls import reverse
 
 from apps.downloads.forms import FetchMetadataForm
 from apps.downloads.models import DownloadJob
@@ -492,6 +493,11 @@ def progress_status(request):
                 "download_eta": duration,
                 "download_speed": speed_kbps,
                 "download_elapsed": elapsed,
+                "download_url": (
+                    reverse("apps.downloads:download_file", args=[str(job.id)])
+                    if job.status == "completed" and job.output_filename
+                    else None
+                ),
             },
         )
         response["HX-TRIGGER"] = "refresh-history"
