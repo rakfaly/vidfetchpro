@@ -4,7 +4,7 @@ from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from django.urls import reverse
