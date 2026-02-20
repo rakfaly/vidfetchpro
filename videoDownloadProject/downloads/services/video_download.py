@@ -130,6 +130,7 @@ class VideoDownload:
             # Enable JS challenge solver via remote components.
             "remote_components": ["ejs:github"],
             "js_runtimes": {"deno": {}},
+            "cookiefile": settings.YTDLP_COOKIE_FILE,
         }
 
         with YoutubeDL(ydl_opts) as ydl:
