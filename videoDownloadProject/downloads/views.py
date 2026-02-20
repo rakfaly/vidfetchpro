@@ -446,7 +446,8 @@ def progress_status(request):
     Uses job IDs stored in session to find the first active job.
     Stops polling once all jobs are completed/failed/cancelled.
     """
-    job_ids = request.session.get("download_job_ids") or []
+    try:
+        job_ids = request.session.get("download_job_ids") or []
         if not job_ids:
             return HttpResponse("")
 
@@ -501,10 +502,8 @@ def progress_status(request):
         )
         response["HX-TRIGGER"] = "refresh-history"
         return response
-    #try:
-        
-    #except Exception as e:
-    #    return HttpResponse("<p>Error: %s</p>" % e)
+    except Exception as e:
+        return HttpResponse("<p>Error: %s</p>" % e)
 
 
 def start_download_spinner(request):
