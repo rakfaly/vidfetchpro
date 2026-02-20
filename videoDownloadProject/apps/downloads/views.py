@@ -492,6 +492,11 @@ def progress_status(request):
                 "download_eta": duration,
                 "download_speed": speed_kbps,
                 "download_elapsed": elapsed,
+                "download_url": (
+                       reverse("apps.downloads:download_file", args=[str(job.id)])
+                       if job.status == "completed" and job.output_filename
+                       else None
+                   ),
             },
         )
         response["HX-TRIGGER"] = "refresh-history"
